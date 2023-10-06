@@ -1,5 +1,6 @@
 import { ReactNode, createContext, useEffect, useReducer, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
+import SessionTimeout from '../Components/SessionTimeout';
 
 enum HANDLERS {
     INITIALIZE = 'INITIALIZE',
@@ -207,9 +208,10 @@ export interface IAuthContext {
     }
 
     return (
-        <AuthContext.Provider value={{ signIn, data, testFunction, isAuthenticated, token, signOut }}>
-            {!loading && children}
-        </AuthContext.Provider>
+      <AuthContext.Provider value={{ signIn, data, testFunction, isAuthenticated, token, signOut }}>
+        {/* {!loading && isAuthenticated && <SessionTimeout />} */}
+        {!loading && children}
+      </AuthContext.Provider>
     )
 }
 
