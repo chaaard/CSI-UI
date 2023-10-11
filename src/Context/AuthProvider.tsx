@@ -1,6 +1,5 @@
 import { ReactNode, createContext, useEffect, useReducer, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
-import SessionTimeout from '../Components/SessionTimeout';
 
 enum HANDLERS {
     INITIALIZE = 'INITIALIZE',
@@ -150,7 +149,6 @@ export interface IAuthContext {
         try {
             const storedToken = token || Cookies.get('token');
             const isAuthenticated = !!storedToken;
-            console.log("AUTH PROVIDER", isAuthenticated)
             if (isAuthenticated) {
                 dispatch({
                     type: HANDLERS.INITIALIZE,

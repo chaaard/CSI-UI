@@ -5,7 +5,8 @@ import Router from './Route/Router';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './Theme/Theme';
 import { AuthProvider } from './Context/AuthProvider';
-import SessionTimeout from './Components/SessionTimeout';
+// import SessionTimeout from './Components/SessionTimeout';
+import './App.css'; 
 
 
 const App: React.FC = () => {
