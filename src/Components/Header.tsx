@@ -591,7 +591,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
                           sx={{
                             '& .MuiOutlinedInput-input': {
                               color: '#1C2C5A',
-                              width: '250px',
+                              width: '440px',
                             },
                             '& .MuiOutlinedInput-root': {
                               backgroundColor: '#FFFFFF', 
@@ -620,6 +620,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
               </Grid>
               <Grid item >
                 <StyledTextField size='small' variant="outlined" 
+                  value={'0.00'}
                   InputProps={{
                     startAdornment: <InputAdornment className="adornment" position="start">Php</InputAdornment>,
                   }}
@@ -636,7 +637,93 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
                       },
                     },
                     '& .MuiOutlinedInput-input': {
-                      width: '100%',
+                      width: '470px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'right',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                      borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item>
+                <Typography
+                  sx={{
+                    color: '#1C3766',
+                    fontFamily: 'Inter',
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}
+                >EJ Receipt
+                </Typography>
+              </Grid>
+              <Grid item >
+                <StyledTextField size='small' variant="outlined"
+                  value={'0.00'} 
+                  InputProps={{
+                    startAdornment: <InputAdornment className="adornment" position="start">Php</InputAdornment>,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '470px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'right',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                      borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item>
+                <Typography
+                  sx={{
+                    color: '#1C3766',
+                    fontFamily: 'Inter',
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}
+                >Variance
+                </Typography>
+              </Grid>
+              <Grid item >
+                <StyledTextField size='small' variant="outlined" 
+                  value={'0.00'}
+                  InputProps={{
+                    startAdornment: <InputAdornment className="adornment" position="start">Php</InputAdornment>,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '470px',
                       height: '20px',
                       backgroundColor: '#FFFFFF',
                       color: '#1C3766',
