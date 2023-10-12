@@ -25,7 +25,7 @@ const ModalComponent: React.FC<ModalProps> = ({ open, title, children, onClose, 
         classes={{ paper: 'custom-dialog-paper' }}
         sx={{
           '& .MuiDialog-paper': {
-            width: title === 'Input Actual' ? '650px' : null,
+            width: title === 'Input Actual' ? '710px' : null,
             maxWidth: title === 'Input Actual' ? '100%' : null,
           },
         }}
@@ -60,7 +60,7 @@ const ModalComponent: React.FC<ModalProps> = ({ open, title, children, onClose, 
                       backgroundColor: "#20346E",
                       color: "white",
                     },
-                    width: title === 'Input Actual' ? '525px' : '500px',
+                    width: title === 'Input Actual' ? '600px' : '500px',
                     fontFamily: 'Inter',
                     fontWeight: 'bold',
                     fontSize: '20px',

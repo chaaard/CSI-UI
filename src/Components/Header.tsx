@@ -1,4 +1,4 @@
-import { AppBar, Grid, Avatar, Box, IconButton, Toolbar, Typography, styled, Menu, MenuItem, useMediaQuery, useTheme, TextFieldProps, TextField, Checkbox, FormControlLabel } from '@mui/material'
+import { AppBar, Grid, Avatar, Box, IconButton, Toolbar, Typography, styled, Menu, MenuItem, useMediaQuery, useTheme, TextFieldProps, TextField, Checkbox, FormControlLabel, InputAdornment } from '@mui/material'
 import { useCallback, useEffect, useRef, useState } from 'react';
 import React from 'react';
 import { format } from 'date-fns';
@@ -10,6 +10,8 @@ import ModalComponent from './Common/ModalComponent';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+
+
 const BootstrapButton = styled(IconButton)(({ theme }) => ({
   textTransform: 'none',
   fontSize: 16, 
@@ -27,6 +29,18 @@ const BootstrapButton = styled(IconButton)(({ theme }) => ({
   },
   borderRadius: theme.shape.borderRadius, // Ensure the button has the default shape
 }));
+
+const StyledTextField = styled(TextField)({
+  '& .MuiOutlinedInput-input': {
+    paddingRight: '30px', // Adjust the padding to make space for the label
+    overflow: 'hidden', // Prevent text overflow
+    textOverflow: 'ellipsis', // Show ellipsis for overflowing text
+  },
+  '& .adornment': {
+    marginRight: '-40px', // Adjust the margin to overlap the label inside the input
+    zIndex: 1, // Ensure the label is above the input text
+  },
+});
 
 interface HeaderProps {
   sideNavWidth: number;
@@ -546,6 +560,96 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
         open={openManual}
         children={
           <Box sx={{ flexGrow: 1 }}>
+            <Grid container spacing={1} direction={'column'}>
+              <Grid item>
+                <Typography
+                  sx={{
+                    color: '#1C3766',
+                    fontFamily: 'Inter',
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}
+                >Select Date
+                </Typography>
+              </Grid>
+              <Grid item>
+                <Box 
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                  }}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DesktopDatePicker  
+                      inputFormat="MMMM DD, YYYY"
+                      value={selectedDate}
+                      onChange={handleChange}
+                      renderInput={(params : TextFieldProps) => 
+                        <TextField  
+                          size="small"
+                          {...params} 
+                          sx={{
+                            '& .MuiOutlinedInput-input': {
+                              color: '#1C2C5A',
+                              width: '250px',
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              backgroundColor: '#FFFFFF', 
+                              height: '40px',
+                            },
+                            '& .MuiIconButton-root': {
+                              height: '30px',
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </LocalizationProvider>
+                </Box>
+              </Grid>
+              <Grid item>
+                <Typography
+                  sx={{
+                    color: '#1C3766',
+                    fontFamily: 'Inter',
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}
+                >Manual CSI
+                </Typography>
+              </Grid>
+              <Grid item >
+                <StyledTextField size='small' variant="outlined" 
+                  InputProps={{
+                    startAdornment: <InputAdornment className="adornment" position="start">Php</InputAdornment>,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '100%',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'right',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                      borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+            </Grid>
           </Box>
         } 
       />
@@ -561,7 +665,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
               {/* Header Row */}
               <Grid item 
                 sx={{
-                  marginRight: '75px',
+                  marginRight: '95px',
                 }}
               >
                 <Typography
@@ -576,7 +680,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
               </Grid>
               <Grid item
                 sx={{
-                  marginRight: '70px'
+                  marginRight: '90px'
                 }}
               >
                 <Typography
@@ -591,7 +695,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
               </Grid>
               <Grid item
               sx={{
-                marginRight: '20px'
+                marginRight: '30px'
               }}
               >
                 <Typography
@@ -612,7 +716,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
             >
               <Grid item
                 sx={{
-                  marginRight: '20px'
+                  marginRight: '25px'
                 }}
               >
                 <Typography
@@ -627,30 +731,87 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
             </Grid>
             <Grid container spacing={2} justifyContent="flex-start" direction={'row'}
@@ -660,7 +821,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
             >
               <Grid item
                 sx={{
-                  marginRight: '20px'
+                  marginRight: '23px'
                 }}
               >
                 <Typography
@@ -675,30 +836,87 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
             </Grid>
             <Grid container spacing={2} justifyContent="flex-start" direction={'row'}
@@ -708,7 +926,7 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
             >
               <Grid item
                 sx={{
-                  marginRight: '20px'
+                  marginRight: '40px'
                 }}
               >
                 <Typography
@@ -723,40 +941,97 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
             </Grid>
             <Grid container spacing={2} justifyContent="flex-start" direction={'row'}
               sx={{
-                marginBottom: '4px'
+                marginBottom: '5px'
               }}
             >
               <Grid item
                 sx={{
-                  marginRight: '20px',
+                  marginRight: '30px'
                 }}
               >
                 <Typography
@@ -773,37 +1048,410 @@ const Header: React.FC<HeaderProps> = ({ sideNavWidth }) => {
                     color: '#1C3766',
                     fontFamily: 'Inter',
                     fontWeight: 'bold',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    marginTop: '-5px'
                   }}
                 >Merchandise
                 </Typography>
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
-                sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
               <Grid item >
                 <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={2} justifyContent="flex-start" direction={'row'}
+              sx={{
+                marginBottom: '4px'
+              }}
+            >
+              <Grid item
                 sx={{
-                  '& .MuiOutlinedInput-input': {
-                    width: '100px',
-                    height: '15px',
-                  }
-                }} />
+                  marginRight: '15px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: '#1C3766',
+                    fontFamily: 'Inter',
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}
+                >MetroMart
+                </Typography>
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={2} justifyContent="flex-start" direction={'row'}
+              sx={{
+                marginBottom: '4px'
+              }}
+            >
+              <Grid item
+                sx={{
+                  marginRight: '49px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: '#1C3766',
+                    fontFamily: 'Inter',
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}
+                >Lazada
+                </Typography>
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={2} justifyContent="flex-start" direction={'row'}
+              sx={{
+                marginBottom: '4px'
+              }}
+            >
+              <Grid item
+                sx={{
+                  marginRight: '45px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: '#1C3766',
+                    fontFamily: 'Inter',
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}
+                >Shopee
+                </Typography>
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
+              </Grid>
+              <Grid item >
+                <TextField size='small' variant="outlined" 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                      '&:hover fieldset': {
+                        border: 'none',
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      width: '120px',
+                      height: '20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1C3766',
+                      fontFamily: 'Inter',
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      boxShadow: 'inset 0px 0px 0px 0px rgba(0,0,0,0.3), inset 0px 0px 8px -1px rgba(0,0,0,0.3)',
+                    borderRadius: '10px',
+                    }
+                  }} 
+                />
               </Grid>
             </Grid>
           </Box>
