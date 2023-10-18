@@ -17,17 +17,6 @@ interface PaperProps {
 
 const PaperComponent: React.FC<PaperProps> = ({ color, backgroundColor, backgroundColorView, image, onClick, variance, system, actual, isImage, top, left, width }) => {
 return (
-  <Box  
-    sx={{
-      display: 'flex',
-      flexWrap: 'wrap',
-      marginBottom: '20px',
-      '& > :not(style)': {
-        width: 250,
-        height: 200,
-    },
-    }}
-  >
     <Paper
       sx={{ 
         width: '18%',
@@ -168,8 +157,7 @@ return (
         </IconButton>
       </Paper>
     </Paper>
-  </Box>
-);
+  );
 };
 
 export default PaperComponent;

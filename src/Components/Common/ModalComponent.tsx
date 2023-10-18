@@ -30,7 +30,7 @@ const ModalComponent: React.FC<ModalProps> = ({ open, title, children, onClose, 
           },
         }}
       >
-        <DialogTitle sx={{ color: "#1C3766", fontWeight: "bold" }}>
+        <DialogTitle sx={{ color: "#1C2C5A",  fontWeight: '900' ,fontSize: '20px' }}>
           {title}
           <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
             <CloseIcon />
