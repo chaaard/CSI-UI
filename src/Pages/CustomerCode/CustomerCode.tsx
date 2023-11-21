@@ -478,33 +478,33 @@ const CustomerCode = () => {
               <Grid item xs={11.5} sx={{marginLeft: '10px'}}>
                 <Box display={'flex'}>
                   <TextField
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      name="CategoryId"
-                      type="text"
-                      required
-                      select
-                      value={fieldValues?.CategoryId}
-                      onChange={(e) => handleChangeCustomer("CategoryId", e.target.value)}
-                      error={submitted && !fieldValues?.CategoryId}
-                      helperText={submitted && !fieldValues?.CategoryId && "Category is required"}
-                      InputProps={{
-                        sx: {
-                          borderRadius: '13px', 
-                          backgroundColor: '#EEEEEE',
-                          color: '#1C2C5A',
-                          "& fieldset": { border: 'none' },
-                          boxShadow: 'inset 1px 1px 1px -3px rgba(0,0,0,0.1), inset 1px 1px 8px 0px rgba(0,0,0,0.3)',
-                        },
-                      }}
-                    >
-                      {category.map((category: ICategory) => (
-                        <MenuItem key={category.Id} value={category.Id}>
-                          {category.CategoryName}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    name="CategoryId"
+                    type="text"
+                    required
+                    select
+                    value={fieldValues?.CategoryId}
+                    onChange={(e) => handleChangeCustomer("CategoryId", e.target.value)}
+                    error={submitted && !fieldValues?.CategoryId}
+                    helperText={submitted && !fieldValues?.CategoryId && "Category is required"}
+                    InputProps={{
+                      sx: {
+                        borderRadius: '13px', 
+                        backgroundColor: '#EEEEEE',
+                        color: '#1C2C5A',
+                        "& fieldset": { border: 'none' },
+                        boxShadow: 'inset 1px 1px 1px -3px rgba(0,0,0,0.1), inset 1px 1px 8px 0px rgba(0,0,0,0.3)',
+                      },
+                    }}
+                  >
+                    {category.map((category: ICategory) => (
+                      <MenuItem key={category.Id} value={category.Id}>
+                        {category.CategoryName}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Box>
               </Grid>
             </Grid>

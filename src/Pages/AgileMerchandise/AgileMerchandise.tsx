@@ -7,7 +7,7 @@ import ExceptionsTable from '../../Components/Common/ExceptionsTable';
 import AnalyticsTable from '../../Components/Common/AnalyticsTable';
 import PortalTable from '../../Components/Common/PortalTable';
 
-const GrabMart = () => {
+const AgileMerchandise = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [activeButton, setActiveButton] = useState('Match');
 
@@ -25,7 +25,7 @@ const GrabMart = () => {
   }, []);
 
   useEffect(() => {
-    document.title = 'CSI | GrabMart';
+    document.title = 'CSI | Agile Merchandise';
   }, []);
 
   return (
@@ -62,7 +62,7 @@ const GrabMart = () => {
                       backgroundColor: 'white',
                       marginLeft: '15px',
                       paddingLeft: '-1px',
-                      marginRight: '650px',
+                      marginRight: '600px',
                       borderTopRightRadius: '20px',
                       borderTopLeftRadius: '20px',
                       paddingTop: '5px',
@@ -79,11 +79,12 @@ const GrabMart = () => {
                         fontSize: 17,
                       }}
                     >
-                      GrabMart
+                      Agile Merchandise
                     </Typography>
                     <Box
                       sx={{
-                        border: '2px solid #00B14F',
+                        border: '2px solid #1C2D5B',
+                        backgroundColor: '#1C2D5B',
                         height: '3px',
                         width: '40px',
                         borderRadius: '25px',
@@ -245,4 +246,4 @@ const GrabMart = () => {
   )
 }
 
-export default GrabMart
+export default AgileMerchandise

@@ -1,23 +1,14 @@
-import { Box, Grid, Typography, TextField, Button, ButtonGroup, Divider, Fade } from '@mui/material';
+import { Box, Grid, Typography, TextField, Button, Divider } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import ModalComponent from '../../Components/Common/ModalComponent';
 import HeaderButtons from '../../Components/Common/HeaderButtons';
-import MatchTable from '../../Components/Common/MatchTable';
-import ExceptionsTable from '../../Components/Common/ExceptionsTable';
-import AnalyticsTable from '../../Components/Common/AnalyticsTable';
-import PortalTable from '../../Components/Common/PortalTable';
+import ReferenceTable from '../../Components/Common/ReferenceTable';
 
-const GrabMart = () => {
+const Employee = () => {
   const [open, setOpen] = useState<boolean>(false);
-  const [activeButton, setActiveButton] = useState('Match');
 
   const handleOpenModal = () => {
     setOpen(true);
-  };
-
-  const handleButtonClick = (buttonName : string) => {
-    setActiveButton(buttonName);
-    // Add any additional logic you need on button click
   };
 
   const handleCloseModal = useCallback(() => {
@@ -25,7 +16,7 @@ const GrabMart = () => {
   }, []);
 
   useEffect(() => {
-    document.title = 'CSI | GrabMart';
+    document.title = 'CSI | Employee';
   }, []);
 
   return (
@@ -79,11 +70,12 @@ const GrabMart = () => {
                         fontSize: 17,
                       }}
                     >
-                      GrabMart
+                      Employee
                     </Typography>
                     <Box
                       sx={{
-                        border: '2px solid #00B14F',
+                        border: '2px solid #1C2D5B',
+                        backgroundColor: '#1C2D5B',
                         height: '3px',
                         width: '40px',
                         borderRadius: '25px',
@@ -103,79 +95,10 @@ const GrabMart = () => {
                   borderBottomRightRadius: '20px',
                 }}
                 >
-                <ButtonGroup sx={{ height: '20px', display: 'flex', justifyContent: 'center', paddingTop: '10px'  }}>
-                  <Button 
-                    sx={{ 
-                      fontWeight: '900 !important', 
-                      fontSize: '12px', 
-                      width: '250px', 
-                      borderRadius: '10px', 
-                      textTransform: 'none',  
-                      border: '2px solid #1C2D5B' ,
-                      color: activeButton === 'Analytics' ? '#fff' : '#1C2D5B',
-                      backgroundColor: activeButton === 'Analytics' ? '#1C2D5B' : 'transparent',
-                    }}
-                    onClick={() => handleButtonClick('Analytics')}
-                  >Analytics
-                  </Button>
-                  <Button 
-                    sx={{ 
-                      fontWeight: '900 !important', 
-                      fontSize: '12px', 
-                      width: '250px', 
-                      textTransform: 'none',  
-                      border: '2px solid #1C2D5B',
-                      color: activeButton === 'Match' ? '#fff' : '#1C2D5B',
-                      backgroundColor: activeButton === 'Match' ? '#1C2D5B' : 'transparent',
-                    }}
-                    onClick={() => handleButtonClick('Match')}
-                  >Match
-                  </Button>
-                  <Button 
-                    sx={{ 
-                      fontWeight: '900 !important', 
-                      fontSize: '12px', 
-                      width: '250px' , 
-                      borderRadius: '10px', 
-                      textTransform: 'none',  
-                      border: '2px solid #1C2D5B', 
-                      color: activeButton === 'Portal' ? '#fff' : '#1C2D5B',
-                      backgroundColor: activeButton === 'Portal' ? '#1C2D5B' : 'transparent',
-                    }}
-                    onClick={() => handleButtonClick('Portal')}
-                  >Portal
-                  </Button>
-                </ButtonGroup>
-                <div className="fade">
-                  {activeButton === 'Analytics' && (
-                    <Fade  in={true} timeout={500}>
-                      <Box>
-                        <AnalyticsTable />
-                      </Box>
-                    </Fade>
-                  )}
-                  {activeButton === 'Match' && (
-                    <Fade  in={true}  timeout={500}>
-                      <Box>
-                        <MatchTable />
-                      </Box>
-                    </Fade>
-                  )}
-                  {activeButton === 'Portal' && (
-                    <Fade  in={true} timeout={500}>
-                      <Box>
-                        <PortalTable />
-                      </Box>
-                    </Fade>
-                  )}
-                </div>
+                <ReferenceTable />
               </Box>
             </Box>
             <Divider variant="middle" sx={{ paddingTop: '20px', borderBottomWidth: 2 }} />
-            <Box
-              sx={{ paddingTop: '20px' }}>
-              <ExceptionsTable />
-            </Box>
           </Grid>
         </Grid>
       <ModalComponent
@@ -245,4 +168,4 @@ const GrabMart = () => {
   )
 }
 
-export default GrabMart
+export default Employee

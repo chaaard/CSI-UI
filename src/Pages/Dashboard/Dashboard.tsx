@@ -1,4 +1,4 @@
-import { Box, Divider, Grid, IconButton, Pagination, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, TextFieldProps, Typography, styled } from '@mui/material';
+import { Box, Divider, Grid, TextField, TextFieldProps, Typography, styled } from '@mui/material';
 import GrabMart from '../../Assets/GrabMart.png'
 import GrabFood from '../../Assets/GrabFood.png'
 import Metromart from '../../Assets/Metromart.png'
@@ -10,30 +10,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useEffect, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import PaperComponent from '../../Components/Common/PaperComponent';
-
-const StyledTableCellHeader = styled(TableCell)(() => ({
-  padding: "8px 17px !important",
-  fontSize: "15px",
-  fontWeight: '900',
-  color: '#1C2C5A',
-  textAlign: 'center',
-}));
-
-const StyledTableCellBody = styled(TableCell)(() => ({
-  fontSize: "14px",
-  color: '#1C2C5A',
-  fontWeight: '400',
-  textAlign: 'center',
-})); 
-
-const BootstrapButton = styled(IconButton)(() => ({
-  textTransform: 'none',
-  fontSize: 12, 
-  lineHeight: 1.5,
-  color: '#1C2C5A',
-  fontWeight: '900',
-  fontFamily: 'Inter',
-}));
+import StatusPaper from '../../Components/Common/StatusPaper';
 
 const CustomScrollbarBox = styled(Box)`
     overflow-y: auto;
@@ -56,11 +33,6 @@ const CustomScrollbarBox = styled(Box)`
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null | undefined>(null);
   const [currentDate, setCurrentDate] = useState<Dayjs | null | undefined>(null);
-  const [page, setPage] = useState<number>(1); // Current page number
-  const [itemsPerPage, setItemsPerPage] = useState<number>(20); // Items displayed per page
-  const [pageCount, setPageCount] = useState<number>(0); // Total page count
-  const [columnToSort, setColumnToSort] = useState<string>(""); // Column to sort
-  const [orderBy, setOrderBy] = useState<string>("asc"); // Sorting order
   
   const handleSubmit = () => {
     console.log("Test");
@@ -84,19 +56,6 @@ const Dashboard = () => {
   useEffect(() => {
     document.title = 'CSI | Dashboard';
   }, []);
-
-  function createRow(customer: string, jo: string, transactDate: string, amount: string, adjustment: string) {
-    return { customer, jo, transactDate, amount, adjustment};
-  }
-
-  const rows = [
-    createRow('LAZADA', '9999990009', 'September 22, 2023', '43.00', 'For Dispute Filling'),
-    createRow('LAZADA', '9999990009', 'September 22, 2023', '43.00', 'For Cancellation'),
-    createRow('LAZADA', '9999990009', 'September 22, 2023', '43.00', 'JO Edit'),
-    createRow('LAZADA', '9999990009', 'September 22, 2023', '43.00', 'Change Partner'),
-    createRow('GRABMART', '9999990009', 'September 22, 2023', '43.00', 'JO Edit'),
-    createRow('GRABFOOD', '9999990009', 'September 22, 2023', '43.00', 'Change Partner'),
-  ];
 
   return (
   <CustomScrollbarBox>
@@ -143,10 +102,6 @@ const Dashboard = () => {
         marginLeft: '16px',
         marginRight: '16px',
         flexWrap: 'wrap',
-        '& > :not(style)': {
-          width: 250,
-          height: 140,
-        },
       }}>
       
       {/* Grab Mart */}
@@ -326,8 +281,7 @@ const Dashboard = () => {
       }}>
     </Divider>
     <Grid container direction="row" alignItems="center" sx={{ padding: '10px 16px 0 16px' }} >
-      {/* DatetimePicker for start date */}
-      <Grid item xs={12} sm={12} md={12} lg={12} xl={2.6}>
+      <Grid item xs={12} sm={12} md={12} lg={12} xl={2.5}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DesktopDatePicker
             inputFormat="dddd, MMMM DD, YYYY"
@@ -390,127 +344,49 @@ const Dashboard = () => {
           />
         </LocalizationProvider>
       </Grid>
-
-      <Grid item>
-        <BootstrapButton
-          onClick={() => {
-            //handleEditOrDeleteClick(row.Id, true)
-          }}
-          sx={{
-            backgroundColor: '#EEEEEE',
-            width: '120px',
-            height: "20px",
-            fontSize: '16px',
-            borderRadius: "15px",
-            fontWeight: '600',
-            "&:hover": {
-              backgroundColor: "#E7E7E7",
-            },
-          }}>
-            View All
-        </BootstrapButton>
-      </Grid>
     </Grid>
-    <Box sx={{ position: 'relative', paddingLeft: '16px', paddingRight: '16px', marginTop: '-5px' }}>
-      <CustomScrollbarBox component={Paper}
-        sx={{
-          height: '350px',
-          position: 'relative',
-          paddingTop: '10px',
-          boxShadow: 'inset 1px 6px 8px -1px rgba(0,0,0,0.3), inset -1px 1px 10px -1px rgba(0,0,0,0.3)',
-          marginTop: '16px',
-          paddingLeft: '50px',
-          paddingRight: '50px',
-          borderRadius: '25px',
-          backgroundColor: '#F2F2F2',
-        }}
-      >
-        <Table  
-          sx={{
-            "& td": {
-              border: 0,
-              padding: '2px',
-              paddingLeft: '50px',
-              paddingRight: '50px',
-            },
-          }}>
-          <TableHead  sx={{
-              "& th": {
-                borderBottom: "2px solid #1C2C5A",
-              },
-            }}>
-            <TableRow>
-              <StyledTableCellHeader>Customer</StyledTableCellHeader>
-              <StyledTableCellHeader>JO</StyledTableCellHeader>
-              <StyledTableCellHeader>Transaction Date</StyledTableCellHeader>
-              <StyledTableCellHeader>Amount</StyledTableCellHeader>
-              <StyledTableCellHeader>Adjustment</StyledTableCellHeader>
-              <StyledTableCellHeader>Action</StyledTableCellHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row, index) => (
-            <TableRow key={index}>
-              <StyledTableCellBody>{row.customer}</StyledTableCellBody>
-              <StyledTableCellBody>{row.jo}</StyledTableCellBody>
-              <StyledTableCellBody>{row.transactDate}</StyledTableCellBody>
-              <StyledTableCellBody>{row.amount}</StyledTableCellBody>
-              <StyledTableCellBody>{row.adjustment}</StyledTableCellBody>
-              <StyledTableCellBody sx={{ textAlign: 'center', width: '60px' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <BootstrapButton
-                    onClick={() => {
-                      //handleEditOrDeleteClick(row.Id, true)
-                    }}
-                    sx={{
-                      boxShadow: 'inset 1px 1px 1px -1px rgba(0,0,0,0.3), inset -1px 1px 6px -1px rgba(0,0,0,0.3)',
-                      backgroundColor: '#FFFFFF',
-                      width: '90px',
-                      height: "20px",
-                      borderRadius: "15px",
-                      "&:hover": {
-                        //backgroundColor: "#7799F8",
-                      },
-                    }}>
-                      View
-                  </BootstrapButton>
-                  <BootstrapButton
-                    onClick={() => {
-                      //handleEditOrDeleteClick(row.Id, false)
-                    }}
-                    sx={{
-                      boxShadow: 'inset 1px 1px 1px -1px rgba(0,0,0,0.3), inset -1px 1px 6px -1px rgba(0,0,0,0.3)',
-                      backgroundColor: '#FFFFFF',
-                      width: '90px',
-                      height: "20px",
-                      borderRadius: "15px",
-                      marginLeft: 0.5,
-                      "&:hover": {
-                        //backgroundColor: "#FF7171", // Change to the desired hover color
-                      }
-                    }}>
-                    Edit
-                  </BootstrapButton>
-                </Box>
-              </StyledTableCellBody>
-            </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CustomScrollbarBox>
-      {/* Pagination */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-        <Pagination
-          variant="outlined"
-          shape="rounded"
-          count={pageCount}
-          page={page}
-          // onChange={(event, value) => {
-          //   setPage(value);
-          //   fetchCustomerCodes(value, itemsPerPage, searchQuery, columnToSort, orderBy);
-          // }}
-        />
-      </Box>
+    <Box 
+      sx={{ 
+        position: 'relative', 
+        marginLeft: '16px', 
+        marginRight: '16px', 
+        marginTop: '10px',
+        backgroundColor: '#F2F2F2',
+        borderRadius: '25px',
+        height: '100%',
+        boxShadow: 'inset 6px 9px 8px -1px rgba(0,0,0,0.1), inset -6px 0px 8px -1px rgba(0,0,0,0.1)',
+        maxHeight: '320px',
+      }}
+    >
+      <Grid container justifyContent="center">
+        <Grid item>
+          <Box  
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+            }}
+          >
+            <StatusPaper 
+              title={'Pending'} 
+              transactionCount={10} 
+              totalAmount={'100,000'} 
+              color='#404962' 
+              bgColor='#FFE5A2' 
+              borderColor='2px solid #E8D092' 
+            />
+
+            <StatusPaper 
+              title={'Completed'} 
+              transactionCount={10} 
+              totalAmount={'100,000'} 
+              color='#404962' 
+              bgColor='#D4E5F5' 
+              borderColor='2px solid #BBCBDA' 
+            />
+          </Box>
+        </Grid>
+      </Grid>
     </Box>
   </CustomScrollbarBox>
   )

@@ -7,7 +7,7 @@ import ExceptionsTable from '../../Components/Common/ExceptionsTable';
 import AnalyticsTable from '../../Components/Common/AnalyticsTable';
 import PortalTable from '../../Components/Common/PortalTable';
 
-const GrabMart = () => {
+const GrabFood = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [activeButton, setActiveButton] = useState('Match');
 
@@ -25,7 +25,7 @@ const GrabMart = () => {
   }, []);
 
   useEffect(() => {
-    document.title = 'CSI | GrabMart';
+    document.title = 'CSI | GrabFood';
   }, []);
 
   return (
@@ -79,11 +79,12 @@ const GrabMart = () => {
                         fontSize: 17,
                       }}
                     >
-                      GrabMart
+                      GrabFood
                     </Typography>
                     <Box
                       sx={{
                         border: '2px solid #00B14F',
+                        backgroundColor: '#00B14F',
                         height: '3px',
                         width: '40px',
                         borderRadius: '25px',
@@ -245,4 +246,4 @@ const GrabMart = () => {
   )
 }
 
-export default GrabMart
+export default GrabFood

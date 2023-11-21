@@ -18,11 +18,12 @@ return (
   <Box  
     sx={{
       display: 'flex',
+      justifyContent: 'space-between',
       flexWrap: 'wrap',
-      marginBottom: '20px',
+      marginBottom: '-5px',
       '& > :not(style)': {
         width: 250,
-        height: 200,
+        height: 160,
     },
     }}
   >
@@ -70,7 +71,7 @@ return (
       <Box 
         sx={{ 
           paddingRight: '12px', 
-          paddingTop: '45px', 
+          paddingTop: '55px', 
           width: '60%', 
           textAlign: 'right' 
         }}>
