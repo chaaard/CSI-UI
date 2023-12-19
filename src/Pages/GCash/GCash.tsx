@@ -1,4 +1,4 @@
-import { Box, Grid, Typography, TextField, Button, ButtonGroup, Divider, Fade, Alert, styled, Pagination, Snackbar, Backdrop, CircularProgress } from '@mui/material';
+import { Box, Grid, Typography, TextField, Button, ButtonGroup, Divider, Fade, Alert, styled, Pagination, Snackbar } from '@mui/material';
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import ModalComponent from '../../Components/Common/ModalComponent';
 import HeaderButtons from '../../Components/Common/HeaderButtons';
@@ -14,7 +14,6 @@ import axios, { AxiosRequestConfig } from 'axios';
 import IAnalyticProps from '../Common/Interface/IAnalyticsProps';
 import IExceptionProps from '../Common/Interface/IExceptionProps';
 import dayjs, { Dayjs } from 'dayjs';
-import IRefreshAnalytics from '../Common/Interface/IRefreshAnalytics';
 
 // Define custom styles for white alerts
 const WhiteAlert = styled(Alert)(({ severity }) => ({
@@ -27,9 +26,8 @@ const WhiteAlert = styled(Alert)(({ severity }) => ({
   backgroundColor: severity === 'success' ? '#E7FFDF' : '#FFC0C0',
 }));
 
-const PickARoo = () => {
+const GCash = () => {
   const { REACT_APP_API_ENDPOINT } = process.env;
-  const getClub = window.localStorage.getItem('club');
   const [open, setOpen] = useState<boolean>(false);
   const [activeButton, setActiveButton] = useState('Match');
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,34 +45,20 @@ const PickARoo = () => {
   const [pageCount, setPageCount] = useState<number>(0); // Total page count
   const [columnToSort, setColumnToSort] = useState<string>(""); // Column to sort
   const [orderBy, setOrderBy] = useState<string>("asc"); // Sorting order
+  const [isModalClose, setIsModalClose] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [currentDate, setCurrentDate] = useState<Dayjs | null>(null);
-  const [success, setSuccess] = useState<boolean>(false);
-  const [isModalClose, setIsModalClose] = useState<boolean>(false);
-  const [successRefresh, setSuccessRefresh] = useState<boolean>(false);
-  const [openRefresh, setOpenRefresh] = useState<boolean>(false);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-
-  useEffect(() => {
-    document.title = 'CSI | PickARoo';
-  }, []);
-
-  let club = 0;
-  if(getClub !== null)
-  {
-    club = parseInt(getClub, 10);
-  }
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Check if the selected file has the allowed file type
-      if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
+      if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
         setSelectedFile(file);
       } else {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
-        setMessage('Please select a valid .csv or .xlsx file.');
+        setMessage('Please select a valid .xls or .xlsx file.');
       }
     } 
   };
@@ -90,14 +74,6 @@ const PickARoo = () => {
   const handleOpenModal = () => {
     setOpen(true);
   };
-
-  const handleOpenRefresh = () => {
-    setOpenRefresh(true);
-  };
-
-  const handleCloseRefresh = useCallback(() => {
-    setOpenRefresh(false);
-  }, []);
 
   const handleButtonClick = (buttonName : string) => {
     setActiveButton(buttonName);
@@ -115,12 +91,8 @@ const PickARoo = () => {
       }
 
       const formData = new FormData();
-      if (selectedFile && selectedDate) {
+      if (selectedFile) {
         formData.append('file', selectedFile);
-        formData.append('customerName', 'GrabFood');
-        formData.append('strClub', club.toString());
-        formData.append('selectedDate', selectedDate.toString());
-
         const uploadProofList: AxiosRequestConfig = {
           method: 'POST',
           url: `${REACT_APP_API_ENDPOINT}/ProofList/UploadProofList`,
@@ -134,7 +106,7 @@ const PickARoo = () => {
             setSelectedFile(null);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
-            setMessage('PickARoo proof list already uploaded');
+            setMessage('GCash proof list already uploaded');
           }
           else if (response.data.Item2 === 'Error extracting proof list.')
           {
@@ -143,34 +115,18 @@ const PickARoo = () => {
             setSnackbarSeverity('error');
             setMessage('Error extracting proof list. Please check the file and try again!');
           }
-          else if (response.data.Item2 === 'Uploaded file transaction dates do not match.')
-          {
-            setSelectedFile(null);
-            setIsSnackbarOpen(true);
-            setSnackbarSeverity('error');
-            setMessage('Uploaded file transaction dates do not match. Please check the file and try again!');
-          }
-          else if (response.data.Item2 === 'Column not found.')
-          {
-            setSelectedFile(null);
-            setIsSnackbarOpen(true);
-            setSnackbarSeverity('error');
-            setMessage('Uploaded file Columns do not match. Please check the file and try again!');
-          }
           else
           {
             setSelectedFile(null);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('success');
-            setMessage('PickARoo proof list uploaded successfully.');
-            setSuccess(true);
-            setOpen(false);
+            setMessage('GCash proof list uploaded successfully');
           }
         })
         .catch((error) => {
           setIsSnackbarOpen(true);
           setSnackbarSeverity('error');
-          setMessage('Error uploading proof list');
+          setMessage('Success');
           setSelectedFile(null);
           console.error("Error uploading proof list:", error);
         })
@@ -178,7 +134,7 @@ const PickARoo = () => {
     } catch (error) {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
-        setMessage('Error uploading proof list');
+        setMessage('Success');
         setSelectedFile(null);
         console.error("Error uploading proof list:", error);
     } 
@@ -194,7 +150,11 @@ const PickARoo = () => {
     setSelectedFile(null);
   }, []);
 
-  const fetchPickARoo = useCallback(async(anaylticsParam: IAnalyticProps) => {
+  useEffect(() => {
+    document.title = 'CSI | Agile FS';
+  }, []);
+
+  const fetchGCash = useCallback(async(anaylticsParam: IAnalyticProps) => {
     try {
       setLoading(true);
 
@@ -219,7 +179,7 @@ const PickARoo = () => {
     }
   }, [REACT_APP_API_ENDPOINT]);
 
-  const fetchPickARooPortal = useCallback(async(portalParams: IAnalyticProps) => {
+  const fetchGCashPortal = useCallback(async(portalParams: IAnalyticProps) => {
     try {
       setLoading(true);
 
@@ -244,7 +204,7 @@ const PickARoo = () => {
     }
   }, [REACT_APP_API_ENDPOINT]);
 
-  const fetchPickARooMatch = useCallback(async(anaylticsParam: IAnalyticProps) => {
+  const fetchGCashMatch = useCallback(async(anaylticsParam: IAnalyticProps) => {
     try {
       setLoading(true);
 
@@ -269,7 +229,7 @@ const PickARoo = () => {
     }
   }, [REACT_APP_API_ENDPOINT]);
 
-  const fetchPickARooException = useCallback(async(exceptionParam: IExceptionProps) => {
+  const fetchGCashException = useCallback(async(exceptionParam: IExceptionProps) => {
     try {
       setLoading(true);
 
@@ -296,61 +256,39 @@ const PickARoo = () => {
   }, [REACT_APP_API_ENDPOINT]);
 
   useEffect(() => {
-    if(selectedDate !== null)
-    {
-      const formattedDate = selectedDate.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate],
-        memCode: ['9999011931'],
-        userId: '',
-        storeId: [club],
-      };
-  
-      const exceptionParam: IExceptionProps = {
-        PageNumber: page,
-        PageSize: itemsPerPage,
-        SearchQuery: searchQuery,
-        ColumnToSort: columnToSort,
-        OrderBy: orderBy, 
-        dates: [formattedDate],
-        memCode: ['9999011931'],
-        userId: '',
-        storeId: [club],
-      };
-  
-      fetchPickARoo(anaylticsParam);
-      fetchPickARooPortal(anaylticsParam);
-      fetchPickARooMatch(anaylticsParam);
-      fetchPickARooException(exceptionParam);
-    }
-  }, [fetchPickARoo, fetchPickARooPortal, fetchPickARooMatch, fetchPickARooException, page, itemsPerPage, searchQuery, columnToSort, orderBy, selectedDate, club]);
+    const anaylticsParam: IAnalyticProps = {
+      dates: ['2023-08-01 00:00:00.000'],
+      memCode: ['9999011955'],
+      userId: '',
+      storeId: [221],
+    };
 
-  useEffect(() => {
-    if(success)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011931'],
-        userId: '',
-        storeId: [club],
-      };
+    const exceptionParam: IExceptionProps = {
+      PageNumber: page,
+      PageSize: itemsPerPage,
+      SearchQuery: searchQuery,
+      ColumnToSort: columnToSort,
+      OrderBy: orderBy, 
+      dates: ['2023-08-01 00:00:00.000'],
+      memCode: ['9999011955'],
+      userId: '',
+      storeId: [221],
+    };
 
-      fetchPickARooPortal(anaylticsParam);
-      fetchPickARooMatch(anaylticsParam);
-      setSuccess(false)
-    }
-  }, [fetchPickARooPortal, fetchPickARooMatch, selectedDate, success, club]);
+    fetchGCash(anaylticsParam);
+    fetchGCashPortal(anaylticsParam);
+    fetchGCashMatch(anaylticsParam);
+    fetchGCashException(exceptionParam);
+  }, [fetchGCash, fetchGCashPortal, fetchGCashMatch, fetchGCashException, page, itemsPerPage, searchQuery, columnToSort, orderBy]);
 
   useEffect(() => {
     if(isModalClose)
     {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
       const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011931'],
+        dates: ['2023-08-01 00:00:00.000'],
+        memCode: ['9999011955'],
         userId: '',
-        storeId: [club],
+        storeId: [221],
       };
   
       const exceptionParam: IExceptionProps = {
@@ -359,84 +297,18 @@ const PickARoo = () => {
         SearchQuery: searchQuery,
         ColumnToSort: columnToSort,
         OrderBy: orderBy, 
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011931'],
+        dates: ['2023-08-01 00:00:00.000'],
+        memCode: ['9999011955'],
         userId: '',
-        storeId: [club],
+        storeId: [221],
       };
 
-      fetchPickARooMatch(anaylticsParam);
-      fetchPickARooException(exceptionParam);
+      fetchGCashMatch(anaylticsParam);
+      fetchGCashException(exceptionParam);
       setIsModalClose(false);
     }
   })
-
-  useEffect(() => {
-    if(successRefresh)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011931'],
-        userId: '',
-        storeId: [club],
-      };
-
-      fetchPickARooMatch(anaylticsParam);
-      fetchPickARoo(anaylticsParam);
-      setSuccessRefresh(false);
-    }
-  }, [fetchPickARoo, fetchPickARooMatch, currentDate, successRefresh]);
-
-  const handleRefreshClick = () => {
-    try {
-      setRefreshing(false); 
-      setOpenRefresh(false);
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const updatedParam: IRefreshAnalytics = {
-        dates: [formattedDate ? formattedDate : '', formattedDate ? formattedDate : ''],
-        memCode: ['9999011931'],
-        userId: '',
-        storeId: [club], 
-      }
-
-      const refreshAnalytics: AxiosRequestConfig = {
-        method: 'POST',
-        url: `${REACT_APP_API_ENDPOINT}/Analytics/RefreshAnalytics`,
-        data: updatedParam,
-      };
-
-      axios(refreshAnalytics)
-      .then(() => {
-          setSelectedFile(null);
-          setIsSnackbarOpen(true);
-          setSnackbarSeverity('success');
-          setMessage('Success');
-          setSuccessRefresh(true);
-          setOpenRefresh(false);
-      })
-      .catch((error) => {
-        setIsSnackbarOpen(true);
-        setSnackbarSeverity('error');
-        setMessage('Error refreshing analytics');
-        setSelectedFile(null);
-        console.error("Error refreshing analytics:", error);
-      })
-      .finally(() => {
-        setRefreshing(false); 
-        setOpenRefresh(false);
-      });
-    } catch (error) {
-        setIsSnackbarOpen(true);
-        setSnackbarSeverity('error');
-        setMessage('Error refreshing analytics');
-        setSelectedFile(null);
-        console.error("Error refreshing analytics:", error);
-        setRefreshing(false); 
-        setOpenRefresh(false);
-    } 
-  };
-
+  
   useEffect(() => {
     const defaultDate = dayjs().startOf('day').subtract(1, 'day');
     const currentDate = dayjs().startOf('day').subtract(1, 'day');;
@@ -448,6 +320,7 @@ const PickARoo = () => {
     setSelectedDate(newValue);
   };
 
+
   return (
     <Box
       sx={{
@@ -458,7 +331,7 @@ const PickARoo = () => {
     >
       <Grid container spacing={1} alignItems="flex-start" direction={'row'}>
         <Grid item>
-          <HeaderButtons handleOpenModal={handleOpenModal} handleOpenRefresh={handleOpenRefresh} customerName='PickARoo' handleChangeDate={handleChangeDate} selectedDate={selectedDate}/>  
+          <HeaderButtons handleOpenModal={handleOpenModal} customerName='GCash' handleChangeDate={handleChangeDate} selectedDate={selectedDate} />  
         </Grid>
         <Grid item xs={12}
           sx={{
@@ -473,7 +346,7 @@ const PickARoo = () => {
               borderRadius: '20px',
             }}>
               <Grid container spacing={1} sx={{paddingTop: '4px'}}>
-                <Grid item>
+                <Grid item xs={12} sm={6}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -482,7 +355,7 @@ const PickARoo = () => {
                       backgroundColor: 'white',
                       marginLeft: '15px',
                       paddingLeft: '-1px',
-                      marginRight: '-140px',
+                      marginRight: '650px',
                       borderTopRightRadius: '20px',
                       borderTopLeftRadius: '20px',
                       paddingTop: '5px',
@@ -499,12 +372,11 @@ const PickARoo = () => {
                         fontSize: 17,
                       }}
                     >
-                      PickARoo
+                      Agile FS
                     </Typography>
                     <Box
                       sx={{
-                        border: '2px solid #1CDAC7',
-                        backgroundColor: '#1CDAC7',
+                        border: '2px solid #17254C',
                         height: '3px',
                         width: '40px',
                         borderRadius: '25px',
@@ -602,12 +474,6 @@ const PickARoo = () => {
                 </div>
               </Box>
             </Box>
-            <Backdrop
-              sx={{ color: '#ffffff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-              open={refreshing}
-            >
-              <CircularProgress size="100px" sx={{ color: '#ffffff' }} />
-            </Backdrop>
             <Divider variant="middle" sx={{ paddingTop: '20px', borderBottomWidth: 2 }} />
             <Box
               sx={{ paddingTop: '20px' }}>
@@ -624,19 +490,18 @@ const PickARoo = () => {
                   page={page}
                   onChange={(event, value) => {
                     setPage(value);
-                    const formattedDate = currentDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
                     const exceptionParam: IExceptionProps = {
                       PageNumber: value,
                       PageSize: itemsPerPage,
                       SearchQuery: searchQuery,
                       ColumnToSort: columnToSort,
                       OrderBy: orderBy, 
-                      dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-                      memCode: ['9999011931'],
+                      dates: ['2023-08-01 00:00:00.000'],
+                      memCode: ['9999011955'],
                       userId: '',
-                      storeId: [club],
+                      storeId: [221],
                     };
-                    fetchPickARooException(exceptionParam);
+                    fetchGCashException(exceptionParam);
                   }}
                 />
               </Box>
@@ -680,7 +545,7 @@ const PickARoo = () => {
                   <TextField 
                     size='small' 
                     fullWidth 
-                    value={'PickARoo'}
+                    value={'GCash'}
                     disabled
                   >
                   </TextField>
@@ -703,7 +568,7 @@ const PickARoo = () => {
                     disabled
                     value={selectedFile ? selectedFile.name : 'Selected File'}
                     size='small'
-                    helperText='*CSV, XLSX File Only'
+                    helperText='*XLS, XLSX File Only'
                     required
                   />
                   <label htmlFor="file-input">
@@ -727,7 +592,7 @@ const PickARoo = () => {
                 <input
                   id="file-input"
                   type="file"
-                  accept=".csv, .xlsx"
+                  accept=".xls, .xlsx"
                   style={{ display: 'none' }}
                   onChange={handleFileChange}
                 />
@@ -737,32 +602,8 @@ const PickARoo = () => {
           </Box>
         } 
       />
-      <ModalComponent
-        title='Refresh Analytics'
-        onClose={handleCloseRefresh}
-        buttonName='Refresh'
-        open={openRefresh}
-        onSave={handleRefreshClick}
-        children={
-          <Box sx={{ flexGrow: 1 }}>
-            <Grid container spacing={1}>
-              <Grid item xs={8}
-                sx={{
-                  fontFamily: 'Inter',
-                  fontWeight: '900',
-                  color: '#1C2C5A',
-                  fontSize: '40px'
-                }}>
-                <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
-                  Any modifications made will be deleted!
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-        } 
-      />
     </Box>
   )
 }
 
-export default PickARoo
+export default GCash

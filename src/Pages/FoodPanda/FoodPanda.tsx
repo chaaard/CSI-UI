@@ -115,10 +115,11 @@ const FoodPanda = () => {
       }
 
       const formData = new FormData();
-      if (selectedFile) {
+      if (selectedFile && selectedDate) {
         formData.append('file', selectedFile);
         formData.append('customerName', 'FoodPanda');
         formData.append('strClub', club.toString());
+        formData.append('selectedDate', selectedDate.toString());
 
         const uploadProofList: AxiosRequestConfig = {
           method: 'POST',
@@ -327,7 +328,7 @@ const FoodPanda = () => {
   useEffect(() => {
     if(success)
     {
-      const formattedDate = currentDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
       const anaylticsParam: IAnalyticProps = {
         dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
         memCode: ['9999011838'],
@@ -337,13 +338,14 @@ const FoodPanda = () => {
 
       fetchFoodPandaPortal(anaylticsParam);
       fetchFoodPandaMatch(anaylticsParam);
+      setSuccess(false);
     }
-  }, [fetchFoodPandaPortal, fetchFoodPandaMatch, currentDate, success]);
+  }, [fetchFoodPandaPortal, fetchFoodPandaMatch, selectedDate, success, club]);
 
   useEffect(() => {
     if(isModalClose)
     {
-      const formattedDate = currentDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
       const anaylticsParam: IAnalyticProps = {
         dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
         memCode: ['9999011838'],
@@ -372,7 +374,7 @@ const FoodPanda = () => {
   useEffect(() => {
     if(successRefresh)
     {
-      const formattedDate = currentDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
       const anaylticsParam: IAnalyticProps = {
         dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
         memCode: ['9999011838'],
@@ -384,14 +386,13 @@ const FoodPanda = () => {
       fetchFoodPanda(anaylticsParam);
       setSuccessRefresh(false);
     }
-  }, [fetchFoodPanda, fetchFoodPandaMatch, currentDate, successRefresh]);
+  }, [fetchFoodPanda, fetchFoodPandaMatch, selectedDate, successRefresh]);
 
   const handleRefreshClick = () => {
     try {
       setRefreshing(false); 
       setOpenRefresh(false);
-      const defaultDate = dayjs().startOf('day').subtract(1, 'day');
-      const formattedDate = defaultDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
       const updatedParam: IRefreshAnalytics = {
         dates: [formattedDate ? formattedDate : '', formattedDate ? formattedDate : ''],
         memCode: ['9999011838'],
@@ -752,7 +753,9 @@ const FoodPanda = () => {
                     color: '#1C2C5A',
                     fontSize: '20px'
                   }}>
-                  Confirmation!
+                  <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
+                    Any modifications made will be deleted!
+                  </Typography>
                 </Grid>
               </Grid>
             </Box>
