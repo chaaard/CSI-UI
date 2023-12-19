@@ -117,7 +117,7 @@ const GrabMart = () => {
       const formData = new FormData();
       if (selectedFile && selectedDate) {
         formData.append('file', selectedFile);
-        formData.append('customerName', 'GrabMart');
+        formData.append('customerName', 'GrabFood');
         formData.append('strClub', club.toString());
         formData.append('selectedDate', selectedDate.toString());
 
