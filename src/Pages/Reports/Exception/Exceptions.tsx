@@ -1,8 +1,11 @@
-import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography, styled, CircularProgress, Pagination, Grid, TextField, TextFieldProps } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography, styled, CircularProgress, Pagination, Grid, TextField, TextFieldProps, Button } from '@mui/material';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useEffect, useState } from 'react';
+import * as React from "react";
+import * as XLSX from 'xlsx';
+
 
 const StyledTableCellHeader = styled(TableCell)(() => ({
   padding: "8px 17px !important",
@@ -36,14 +39,14 @@ const CustomScrollbarBox = styled(Box)`
     }
   `;
 
-  function createRow(customer: string, jo: string, transactiondate: string, amount: number, adjustment: string) {
-    return { customer, jo, transactiondate, amount, adjustment };
+  function createRow(Customer: string, Jo: string, Transactiondate: string, Amount: number, Adjustment: string, Club: string) {
+    return { Customer, Jo, Transactiondate, Amount, Adjustment, Club };
   }
   const rows = [
-    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'For Dispute Filing'),
-    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'For Cancellation'),
-    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'JO Edit'),
-    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'Change Partner'),
+    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'For Dispute Filing', 'SNR New Manila'),
+    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'For Cancellation', 'SNR BGC'),
+    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'JO Edit', 'SNR New Manila'),
+    createRow('GrabFood', '9999990009', 'December 10, 2023', 43.00, 'Change Partner', 'SNR Bulacan'),
   ];
 
 const Exceptions = () => {
@@ -66,11 +69,22 @@ const Exceptions = () => {
   const handleChangeCurrentDate = (newValue: Dayjs | null) => {
     setCurrentDate(newValue);
   };
-
-
+  
   useEffect(() => {
     document.title = 'Maintenance | Exceptions Report';
   }, []);
+
+  const exportToExcel = () => {
+    // Convert the data to a worksheet
+    const ws = XLSX.utils.json_to_sheet(rows);
+  
+    // Create a workbook with a single sheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet 1');
+  
+    // Save the workbook to a file
+    XLSX.writeFile(wb, 'Exception-Reports.xlsx');
+  };
 
   if (!loading) {
     return (
@@ -146,7 +160,7 @@ const Exceptions = () => {
               />
             </LocalizationProvider>
           </Grid>
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={6}>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={5.6}>
             <TextField
               variant="outlined"
               size="small"
@@ -165,6 +179,9 @@ const Exceptions = () => {
               }}
             >
             </TextField>
+          </Grid>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={0.6}>
+            <Button variant="contained" onClick={exportToExcel}>Export</Button>
           </Grid>
         </Grid>
 
@@ -191,6 +208,7 @@ const Exceptions = () => {
                   <StyledTableCellHeader>Transaction Date</StyledTableCellHeader>
                   <StyledTableCellHeader>Amount</StyledTableCellHeader>
                   <StyledTableCellHeader>Adjustment</StyledTableCellHeader>
+                  <StyledTableCellHeader>Club</StyledTableCellHeader>
                 </TableRow>
               </TableHead>
               </Table>
@@ -210,16 +228,18 @@ const Exceptions = () => {
                   },
                 }}>
                 <TableBody >
+
                   {rows.map((row, index) => (
-                  <TableRow key={index} sx={{ "& td": { border: 0 }}}>
-                    <StyledTableCellBody sx={{ textAlign: 'center', width: '310px' }}>{row.customer}</StyledTableCellBody>
-                    <StyledTableCellBody sx={{ textAlign: 'center', width: '165px' }}>{row.jo}</StyledTableCellBody>
-                    <StyledTableCellBody sx={{ textAlign: 'center', width: '460px' }}>{row.transactiondate}</StyledTableCellBody>
-                    <StyledTableCellBody sx={{ textAlign: 'center', width: '285px' }}>{row.amount}</StyledTableCellBody>
-                    <StyledTableCellBody sx={{ textAlign: 'center' }}>{row.adjustment}</StyledTableCellBody>
+                  <TableRow key={index} sx={{ "& td": { border: 0 }}} >
+                    <StyledTableCellBody sx={{ textAlign: 'center', width: '270px' }}>{row.Customer}</StyledTableCellBody>
+                    <StyledTableCellBody sx={{ textAlign: 'center', width: '145px' }}>{row.Jo}</StyledTableCellBody>
+                    <StyledTableCellBody sx={{ textAlign: 'center', width: '400px' }}>{row.Transactiondate}</StyledTableCellBody>
+                    <StyledTableCellBody sx={{ textAlign: 'center', width: '265px' }}>{row.Amount}</StyledTableCellBody>
+                    <StyledTableCellBody sx={{ textAlign: 'center', width: '295px' }}>{row.Adjustment}</StyledTableCellBody>
+                    <StyledTableCellBody sx={{ textAlign: 'center' }}>{row.Club}</StyledTableCellBody>
                   </TableRow>
-    
                   ))}
+                   
                 </TableBody>
               </Table>
             </CustomScrollbarBox>
@@ -237,6 +257,7 @@ const Exceptions = () => {
         </Box>
       </Box>
     )
+                  
   } else {
     return (
       <Box
