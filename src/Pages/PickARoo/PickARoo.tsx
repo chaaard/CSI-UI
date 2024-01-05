@@ -37,7 +37,7 @@ const PickARoo = () => {
   const [portal, setPortal] = useState<IPortal[]>([]);
   const [match, setMatch] = useState<IMatch[]>([]);
   const [exception, setException] = useState<IException[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File[]>([]);
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'warning' | 'info' | 'success'>('success'); // Snackbar severity
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false); // Snackbar open state
   const [message, setMessage] = useState<string>(''); // Error message
@@ -66,18 +66,23 @@ const PickARoo = () => {
   }
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Check if the selected file has the allowed file type
-      if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
-        setSelectedFile(file);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      // Check if all selected files have the allowed file types
+      const validFiles = Array.from(files).filter(file =>
+        file.name.endsWith('.csv') || file.name.endsWith('.xlsx')
+      );
+  
+      if (validFiles.length === files.length) {
+        setSelectedFile(validFiles);
       } else {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
-        setMessage('Please select a valid .csv or .xlsx file.');
+        setMessage('Please select valid .csv or .xlsx files.');
       }
-    } 
+    }
   };
+
 
   // Handle closing the snackbar
   const handleSnackbarClose = (event: React.SyntheticEvent | Event, reason?: string) => {
@@ -116,7 +121,9 @@ const PickARoo = () => {
 
       const formData = new FormData();
       if (selectedFile && selectedDate) {
-        formData.append('file', selectedFile);
+        selectedFile.forEach((file) => {
+          formData.append('files', file);
+        });
         formData.append('customerName', 'PickARoo');
         formData.append('strClub', club.toString());
         formData.append('selectedDate', selectedDate.toString());
@@ -131,35 +138,49 @@ const PickARoo = () => {
         .then((response) => {
           if(response.data.Item2 === 'Proof list already uploaded!')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('PickARoo proof list already uploaded');
           }
           else if (response.data.Item2 === 'Error extracting proof list.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Error extracting proof list. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Uploaded file transaction dates do not match.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file transaction dates do not match. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Column not found.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file Columns do not match. Please check the file and try again!');
           }
+          else if (response.data.Item2 === 'Uploaded file merchant do not match.')
+          {
+            setSelectedFile([]);
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('error');
+            setMessage('Uploaded file merchant do not match. Please check the file and try again!');
+          }
+          else if (response.data.Item2 === 'No files uploaded.')
+          {
+            setSelectedFile([]);
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('error');
+            setMessage('No files uploaded. Please check the file and try again!');
+          }
           else
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('success');
             setMessage('PickARoo proof list uploaded successfully.');
@@ -171,7 +192,7 @@ const PickARoo = () => {
           setIsSnackbarOpen(true);
           setSnackbarSeverity('error');
           setMessage('Error uploading proof list');
-          setSelectedFile(null);
+          setSelectedFile([]);
           console.error("Error uploading proof list:", error);
         })
       }
@@ -179,7 +200,7 @@ const PickARoo = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error uploading proof list');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error uploading proof list:", error);
     } 
 
@@ -191,7 +212,7 @@ const PickARoo = () => {
 
   const handleCloseModal = useCallback(() => {
     setOpen(false);
-    setSelectedFile(null);
+    setSelectedFile([]);
   }, []);
 
   const fetchPickARoo = useCallback(async(anaylticsParam: IAnalyticProps) => {
@@ -408,7 +429,7 @@ const PickARoo = () => {
 
       axios(refreshAnalytics)
       .then(() => {
-          setSelectedFile(null);
+          setSelectedFile([]);
           setIsSnackbarOpen(true);
           setSnackbarSeverity('success');
           setMessage('Success');
@@ -419,7 +440,7 @@ const PickARoo = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error refreshing analytics');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error refreshing analytics:", error);
       })
       .finally(() => {
@@ -430,7 +451,7 @@ const PickARoo = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error refreshing analytics');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error refreshing analytics:", error);
         setRefreshing(false); 
         setOpenRefresh(false);
@@ -617,8 +638,9 @@ const PickARoo = () => {
             <Box
               sx={{ paddingTop: '20px' }}>
               <ExceptionsTable 
-                exception={exception} 
+                exceptions={exception} 
                 loading={loading} 
+                setIsModalClose={setIsModalClose}
               />
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
                 <Pagination
@@ -706,7 +728,7 @@ const PickARoo = () => {
                     variant="outlined"
                     fullWidth
                     disabled
-                    value={selectedFile ? selectedFile.name : 'Selected File'}
+                    value={selectedFile?.length > 0 ? selectedFile?.map(file => file.name).join(', ') : 'Selected Files'}
                     size='small'
                     helperText='*CSV, XLSX File Only'
                     required
@@ -732,6 +754,7 @@ const PickARoo = () => {
                 <input
                   id="file-input"
                   type="file"
+                  multiple={true}
                   accept=".csv, .xlsx"
                   style={{ display: 'none' }}
                   onChange={handleFileChange}

@@ -16,6 +16,7 @@ import IExceptionProps from '../Common/Interface/IExceptionProps';
 import dayjs, { Dayjs } from 'dayjs';
 import IRefreshAnalytics from '../Common/Interface/IRefreshAnalytics';
 import loadingGif from '../../Assets/loading.gif';
+import IAdjustmentAddProps from '../Common/Interface/IAdjustmentAddProps';
 
 // Define custom styles for white alerts
 const WhiteAlert = styled(Alert)(({ severity }) => ({
@@ -38,7 +39,7 @@ const GrabFood = () => {
   const [portal, setPortal] = useState<IPortal[]>([]);
   const [match, setMatch] = useState<IMatch[]>([]);
   const [exception, setException] = useState<IException[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File[]>([]);
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'warning' | 'info' | 'success'>('success'); // Snackbar severity
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false); // Snackbar open state
   const [message, setMessage] = useState<string>(''); // Error message
@@ -56,6 +57,10 @@ const GrabFood = () => {
   const [openRefresh, setOpenRefresh] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   // const [fileNameTxt, setFileNameTxt] = useState<string>('');
+  const [adjustmentFields, setAdjustmentFields] = useState<IAdjustmentAddProps>({} as IAdjustmentAddProps);
+  const [isSave, setIsSave] = useState<boolean>(false);
+  const [isFetchException, setIsFetchException] = useState<boolean>(false);
+
   useEffect(() => {
     document.title = 'CSI | GrabFood';
   }, []);
@@ -83,17 +88,21 @@ const GrabFood = () => {
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Check if the selected file has the allowed file type
-      if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
-        setSelectedFile(file);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      // Check if all selected files have the allowed file types
+      const validFiles = Array.from(files).filter(file =>
+        file.name.endsWith('.csv') || file.name.endsWith('.xlsx')
+      );
+  
+      if (validFiles.length === files.length) {
+        setSelectedFile(validFiles);
       } else {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
-        setMessage('Please select a valid .csv or .xlsx file.');
+        setMessage('Please select valid .csv or .xlsx files.');
       }
-    } 
+    }
   };
 
   // Handle closing the snackbar
@@ -151,7 +160,9 @@ const GrabFood = () => {
 
       const formData = new FormData();
       if (selectedFile && selectedDate) {
-        formData.append('file', selectedFile);
+        selectedFile.forEach((file) => {
+          formData.append('files', file);
+        });
         formData.append('customerName', 'GrabFood');
         formData.append('strClub', club.toString());
         formData.append('selectedDate', selectedDate.toString());
@@ -163,48 +174,64 @@ const GrabFood = () => {
         };
 
         axios(uploadProofList)
-        .then((response) => {
+        .then(async (response) => {
           if(response.data.Item2 === 'Proof list already uploaded!')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('GrabFood proof list already uploaded');
           }
           else if (response.data.Item2 === 'Error extracting proof list.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Error extracting proof list. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Uploaded file transaction dates do not match.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file transaction dates do not match. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Column not found.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file Columns do not match. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Uploaded file merchant do not match.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file merchant do not match. Please check the file and try again!');
           }
+          else if (response.data.Item2 === 'No files uploaded.')
+          {
+            setSelectedFile([]);
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('error');
+            setMessage('No files uploaded. Please check the file and try again!');
+          }
           else
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('success');
             setMessage('GrabFood proof list uploaded successfully.');
+
+            const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+            const anaylticsParam: IAnalyticProps = {
+              dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+              memCode: ['9999011929'],
+              userId: '',
+              storeId: [club],
+            };
+            await fetchGrabFoodMatch(anaylticsParam);
             setSuccess(true);
             setOpen(false);
           }
@@ -213,7 +240,7 @@ const GrabFood = () => {
           setIsSnackbarOpen(true);
           setSnackbarSeverity('error');
           setMessage('Error uploading proof list');
-          setSelectedFile(null);
+          setSelectedFile([]);
           console.error("Error uploading proof list:", error);
         })
       }
@@ -221,7 +248,7 @@ const GrabFood = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error uploading proof list');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error uploading proof list:", error);
     } 
 
@@ -231,9 +258,12 @@ const GrabFood = () => {
     }
   };
 
+  useEffect(() => {
+  }, [match]);
+
   const handleCloseModal = useCallback(() => {
     setOpen(false);
-    setSelectedFile(null);
+    setSelectedFile([]);
   }, []);
 
   const fetchGrabFood = useCallback(async(anaylticsParam: IAnalyticProps) => {
@@ -289,21 +319,19 @@ const GrabFood = () => {
   const fetchGrabFoodMatch = useCallback(async(anaylticsParam: IAnalyticProps) => {
     try {
       setLoading(true);
-
       const getAnalyticsMatch: AxiosRequestConfig = {
         method: 'POST',
         url: `${REACT_APP_API_ENDPOINT}/Analytics/GetAnalyticsProofListVariance`,
         data: anaylticsParam,
       };
 
-      axios(getAnalyticsMatch)
-      .then(async (response) => {
-        setMatch(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      })
-      .finally(() => setLoading(false));
+      const response = await axios(getAnalyticsMatch);
+      const result = response.data;
+
+      if (result != null) {
+        setMatch(result);
+      }
+
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -321,15 +349,15 @@ const GrabFood = () => {
         data: exceptionParam,
       };
 
-      axios(getAnalytics)
-      .then(async (response) => {
-        setException(response.data.ExceptionList);
-        setPageCount(response.data.TotalPages);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      })
-      .finally(() => setLoading(false));
+      const response = await axios(getAnalytics);
+      const exception = response.data.ExceptionList;
+      const pages = response.data.TotalPages
+
+      if (exception != null) {
+        setException(exception);
+        setPageCount(pages);
+      }
+
     } catch (error) {
       console.error("Error fetching adjustment:", error);
     } finally {
@@ -339,96 +367,216 @@ const GrabFood = () => {
 
 
   useEffect(() => {
-    if(selectedDate !== null)
-    {
-      const formattedDate = selectedDate.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate],
-        memCode: ['9999011929'],
-        userId: '',
-        storeId: [club],
-      };
+    const fetchData = async () => {
+      try {
+        if(selectedDate !== null)
+        {
+          const formattedDate = selectedDate.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
+      
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
+      
+          await fetchGrabFood(anaylticsParam);
+          await fetchGrabFoodPortal(anaylticsParam);
+          await fetchGrabFoodMatch(anaylticsParam);
+          await fetchGrabFoodException(exceptionParam);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
   
-      const exceptionParam: IExceptionProps = {
-        PageNumber: page,
-        PageSize: itemsPerPage,
-        SearchQuery: searchQuery,
-        ColumnToSort: columnToSort,
-        OrderBy: orderBy, 
-        dates: [formattedDate],
-        memCode: ['9999011929'],
-        userId: '',
-        storeId: [club],
-      };
-  
-      fetchGrabFood(anaylticsParam);
-      fetchGrabFoodPortal(anaylticsParam);
-      fetchGrabFoodMatch(anaylticsParam);
-      fetchGrabFoodException(exceptionParam);
-    }
+    fetchData();
   }, [fetchGrabFood, fetchGrabFoodPortal, fetchGrabFoodMatch, fetchGrabFoodException, page, itemsPerPage, searchQuery, columnToSort, orderBy, selectedDate, club]);
 
-  useEffect(() => {
-    if(success)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011929'],
-        userId: '',
-        storeId: [club],
-      };
-
-      fetchGrabFoodPortal(anaylticsParam);
-      fetchGrabFoodMatch(anaylticsParam);
-      setSuccess(false);
-    }
-  }, [fetchGrabFoodPortal, fetchGrabFoodMatch, selectedDate, success, club]);
-
-  useEffect(() => {
-    if(isModalClose)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011929'],
-        userId: '',
-        storeId: [club],
-      };
+  const postException = useCallback(async(portalParams: IMatch[]) => {
+    try {
+      if(!isSave)
+      {
+        const adjustmentParamsArray = portalParams.map(filteredMatch => ({
+          Id: 0,
+          AnalyticsId: filteredMatch.AnalyticsId,
+          ProoflistId: filteredMatch.ProofListId,
+          ActionId: null,
+          StatusId: 5,
+          AdjustmentId: 0,
+          DeleteFlag: false,
+          AdjustmentAddDto: adjustmentFields
+        }));
   
-      const exceptionParam: IExceptionProps = {
-        PageNumber: page,
-        PageSize: itemsPerPage,
-        SearchQuery: searchQuery,
-        ColumnToSort: columnToSort,
-        OrderBy: orderBy, 
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011929'],
-        userId: '',
-        storeId: [club],
-      };
+        adjustmentParamsArray.forEach(paramAdjustment => {
+          const saveRequest: AxiosRequestConfig = {
+            method: 'POST',
+            url: `${REACT_APP_API_ENDPOINT}/Adjustment/CreateAnalyticsProofList`,
+            data: paramAdjustment,
+          };
+        
+          axios(saveRequest)
+            .catch((error) => {
+              console.error("Error saving data:", error);
+              setIsSnackbarOpen(true);
+              setSnackbarSeverity('error');
+              setMessage('Error occurred. Please try again.');
+            })
+            .finally(() => {
+              setIsSave(true); 
+            });
+        });
+      }
+    } catch (error) {
 
-      fetchGrabFoodMatch(anaylticsParam);
-      fetchGrabFoodException(exceptionParam);
-      setIsModalClose(false);
-    }
+    } 
+  }, [REACT_APP_API_ENDPOINT, adjustmentFields]);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (success) {
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
+  
+          await fetchGrabFoodPortal(anaylticsParam);
+          // await fetchGrabFoodMatch(anaylticsParam);
+  
+          const filteredMatches = match.filter(match => match.ProofListId === null);
+          
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
+
+          await postException(filteredMatches);
+          setIsFetchException(true);
+          setSuccess(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+  
+    fetchData();
+  }, [fetchGrabFoodPortal, fetchGrabFoodMatch, selectedDate, success, club, match]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if(isModalClose)
+        {
+          console.log("ISMODALCLOSE", isModalClose)
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
+      
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
+
+          await fetchGrabFoodMatch(anaylticsParam);
+          await fetchGrabFoodException(exceptionParam);
+          setIsModalClose(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
   })
 
   useEffect(() => {
-    if(successRefresh)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011929'],
-        userId: '',
-        storeId: [club],
-      };
+    const fetchData = async () => {
+      try {
+        if(isFetchException)
+        {
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
 
-      fetchGrabFoodMatch(anaylticsParam);
-      fetchGrabFood(anaylticsParam);
-      setSuccessRefresh(false);
-    }
+          await fetchGrabFoodException(exceptionParam);
+          setIsFetchException(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if(successRefresh)
+        {
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011929'],
+            userId: '',
+            storeId: [club],
+          };
+    
+          await fetchGrabFoodMatch(anaylticsParam);
+          await fetchGrabFood(anaylticsParam);
+          setSuccessRefresh(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
   }, [fetchGrabFood, fetchGrabFoodMatch, selectedDate, successRefresh]);
 
   const handleRefreshClick = () => {
@@ -451,7 +599,7 @@ const GrabFood = () => {
 
       axios(refreshAnalytics)
       .then(() => {
-          setSelectedFile(null);
+          setSelectedFile([]);
           setIsSnackbarOpen(true);
           setSnackbarSeverity('success');
           setMessage('Success');
@@ -462,7 +610,7 @@ const GrabFood = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error refreshing analytics');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error refreshing analytics:", error);
       })
       .finally(() => {
@@ -473,7 +621,7 @@ const GrabFood = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error refreshing analytics');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error refreshing analytics:", error);
         setRefreshing(false);
         setOpenRefresh(false);
@@ -660,8 +808,9 @@ const GrabFood = () => {
             <Box
               sx={{ paddingTop: '20px' }}>
               <ExceptionsTable 
-                exception={exception} 
+                exceptions={exception} 
                 loading={loading} 
+                setIsModalClose={setIsModalClose}
               />
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
                 <Pagination
@@ -680,7 +829,7 @@ const GrabFood = () => {
                       ColumnToSort: columnToSort,
                       OrderBy: orderBy, 
                       dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-                      memCode: ['9999011910'],
+                      memCode: ['9999011929'],
                       userId: '',
                       storeId: [club],
                     };
@@ -749,7 +898,7 @@ const GrabFood = () => {
                       variant="outlined"
                       fullWidth
                       disabled
-                      value={selectedFile ? selectedFile.name : 'Selected File'}
+                      value={selectedFile?.length > 0 ? selectedFile?.map(file => file.name).join(', ') : 'Selected Files'}
                       size='small'
                       helperText='*CSV, XLSX File Only'
                       required
@@ -775,6 +924,7 @@ const GrabFood = () => {
                   <input
                     id="file-input"
                     type="file"
+                    multiple={true}
                     accept=".csv, .xlsx"
                     style={{ display: 'none' }}
                     onChange={handleFileChange}

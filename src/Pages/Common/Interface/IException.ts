@@ -6,4 +6,8 @@ export default interface IException {
   Amount?: number  | null
   AdjustmentType?: string  | null
   Status?: string  | null
+  AdjustmentId: number
+  LocationName: string | null
+  AnalyticsId: number | null
+  ProofListId: number | null
 }

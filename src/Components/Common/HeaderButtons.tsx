@@ -114,7 +114,7 @@ const HeaderButtons: React.FC<HeaderButtonProps> = ({ handleOpenModal, customerN
           >
             <SyncIcon sx={{marginRight: '5px'}} />
             <Typography>
-              Refresh
+              Reload
             </Typography>
           </BootstrapButton>
         </Grid>

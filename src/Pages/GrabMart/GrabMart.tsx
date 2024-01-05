@@ -38,7 +38,7 @@ const GrabMart = () => {
   const [portal, setPortal] = useState<IPortal[]>([]);
   const [match, setMatch] = useState<IMatch[]>([]);
   const [exception, setException] = useState<IException[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File[]>([]);
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'warning' | 'info' | 'success'>('success'); // Snackbar severity
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false); // Snackbar open state
   const [message, setMessage] = useState<string>(''); // Error message
@@ -67,17 +67,21 @@ const GrabMart = () => {
   }
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Check if the selected file has the allowed file type
-      if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
-        setSelectedFile(file);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      // Check if all selected files have the allowed file types
+      const validFiles = Array.from(files).filter(file =>
+        file.name.endsWith('.csv') || file.name.endsWith('.xlsx')
+      );
+  
+      if (validFiles.length === files.length) {
+        setSelectedFile(validFiles);
       } else {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
-        setMessage('Please select a valid .csv or .xlsx file.');
+        setMessage('Please select valid .csv or .xlsx files.');
       }
-    } 
+    }
   };
 
   // Handle closing the snackbar
@@ -126,7 +130,9 @@ const GrabMart = () => {
 
       const formData = new FormData();
       if (selectedFile && selectedDate) {
-        formData.append('file', selectedFile);
+        selectedFile.forEach((file) => {
+          formData.append('files', file);
+        });
         formData.append('customerName', 'GrabMart');
         formData.append('strClub', club.toString());
         formData.append('selectedDate', selectedDate.toString());
@@ -141,42 +147,49 @@ const GrabMart = () => {
         .then((response) => {
           if(response.data.Item2 === 'Proof list already uploaded!')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('GrabMart proof list already uploaded');
           }
           else if (response.data.Item2 === 'Error extracting proof list.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Error extracting proof list. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Uploaded file transaction dates do not match.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file transaction dates do not match. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Column not found.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file Columns do not match. Please check the file and try again!');
           }
           else if (response.data.Item2 === 'Uploaded file merchant do not match.')
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('error');
             setMessage('Uploaded file merchant do not match. Please check the file and try again!');
           }
+          else if (response.data.Item2 === 'No files uploaded.')
+          {
+            setSelectedFile([]);
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('error');
+            setMessage('No files uploaded. Please check the file and try again!');
+          }
           else
           {
-            setSelectedFile(null);
+            setSelectedFile([]);
             setIsSnackbarOpen(true);
             setSnackbarSeverity('success');
             setMessage('GrabMart proof list uploaded successfully.');
@@ -188,7 +201,7 @@ const GrabMart = () => {
           setIsSnackbarOpen(true);
           setSnackbarSeverity('error');
           setMessage('Error uploading proof list');
-          setSelectedFile(null);
+          setSelectedFile([]);
           console.error("Error uploading proof list:", error);
         })
       }
@@ -196,7 +209,7 @@ const GrabMart = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error uploading proof list');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error uploading proof list:", error);
     } 
 
@@ -208,7 +221,7 @@ const GrabMart = () => {
 
   const handleCloseModal = useCallback(() => {
     setOpen(false);
-    setSelectedFile(null);
+    setSelectedFile([]);
   }, []);
 
   const fetchGrabMart = useCallback(async(anaylticsParam: IAnalyticProps) => {
@@ -345,6 +358,31 @@ const GrabMart = () => {
     }
   }, [fetchGrabMart, fetchGrabMartPortal, fetchGrabMartMatch, fetchGrabMartException, page, itemsPerPage, searchQuery, columnToSort, orderBy, selectedDate, club]);
 
+  const postException = useCallback(async(portalParams: IAnalyticProps) => {
+    try {
+      setLoading(true);
+
+      const getPortal: AxiosRequestConfig = {
+        method: 'POST',
+        url: `${REACT_APP_API_ENDPOINT}/ProofList/GetPortal`,
+        data: portalParams,
+      };
+
+      axios(getPortal)
+      .then(async (response) => {
+        setPortal(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      })
+      .finally(() => setLoading(false));
+    } catch (error) {
+      console.error("Error fetching portal:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [REACT_APP_API_ENDPOINT]);
+
   useEffect(() => {
     if(success)
     {
@@ -428,7 +466,7 @@ const GrabMart = () => {
 
       axios(refreshAnalytics)
       .then(() => {
-          setSelectedFile(null);
+          setSelectedFile([]);
           setIsSnackbarOpen(true);
           setSnackbarSeverity('success');
           setMessage('Success');
@@ -439,7 +477,7 @@ const GrabMart = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error refreshing analytics');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error refreshing analytics:", error);
       })
       .finally(() => {
@@ -450,7 +488,7 @@ const GrabMart = () => {
         setIsSnackbarOpen(true);
         setSnackbarSeverity('error');
         setMessage('Error refreshing analytics');
-        setSelectedFile(null);
+        setSelectedFile([]);
         console.error("Error refreshing analytics:", error);
         setRefreshing(false); 
         setOpenRefresh(false);
@@ -689,8 +727,9 @@ const GrabMart = () => {
             <Box
               sx={{ paddingTop: '20px' }}>
               <ExceptionsTable 
-                exception={exception} 
+                exceptions={exception} 
                 loading={loading} 
+                setIsModalClose={setIsModalClose}
               />
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
                 <Pagination
@@ -778,7 +817,7 @@ const GrabMart = () => {
                     variant="outlined"
                     fullWidth
                     disabled
-                    value={selectedFile ? selectedFile.name : 'Selected File'}
+                    value={selectedFile?.length > 0 ? selectedFile?.map(file => file.name).join(', ') : 'Selected Files'}
                     size='small'
                     helperText='*CSV, XLSX File Only'
                     required
@@ -804,6 +843,7 @@ const GrabMart = () => {
                 <input
                   id="file-input"
                   type="file"
+                  multiple={true}
                   accept=".csv, .xlsx"
                   style={{ display: 'none' }}
                   onChange={handleFileChange}

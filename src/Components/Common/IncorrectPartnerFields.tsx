@@ -6,9 +6,10 @@ import { parseWithOptions } from 'date-fns/esm/fp';
 import IAdjustmentAddProps from '../../Pages/Common/Interface/IAdjustmentAddProps';
 import ICustomerCode from '../../Pages/CustomerCode/Interface/ICustomerCode';
 import axios, { AxiosRequestConfig } from 'axios';
+import IException from '../../Pages/Common/Interface/IException';
 
 interface IncorrectPartnerProps {
-  rowData: IMatch | null;
+  rowData: IException | null;
   onAdjustmentValuesChange: (field: keyof IAdjustmentAddProps, value: any) => void;
 }
 

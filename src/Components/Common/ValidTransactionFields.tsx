@@ -9,9 +9,10 @@ import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import IReasons from '../../Pages/Common/Interface/IReasons';
 import axios, { AxiosRequestConfig } from 'axios';
+import IException from '../../Pages/Common/Interface/IException';
 
 interface ValidTransactionProps {
-  rowData: IMatch | null;
+  rowData: IException | null;
   onAdjustmentValuesChange: (field: keyof IAdjustmentAddProps, value: any) => void;
 }
 
@@ -140,7 +141,7 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsLocation}
+              value={rowData?.LocationName}
             />
           </Box>
         </Grid>
@@ -161,8 +162,8 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsTransactionDate !== null
-                ? new Date(rowData?.AnalyticsTransactionDate ?? '').toLocaleDateString('en-CA', {
+              value={rowData?.TransactionDate !== null
+                ? new Date(rowData?.TransactionDate ?? '').toLocaleDateString('en-CA', {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -190,7 +191,7 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsPartner}
+              value={rowData?.CustomerId}
             />
           </Box>
         </Grid>
@@ -211,7 +212,7 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsOrderNo}
+              value={rowData?.JoNumber}
             />
           </Box>
         </Grid>
@@ -232,7 +233,7 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsAmount}
+              value={rowData?.Amount}
             />
           </Box>
         </Grid>

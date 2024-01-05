@@ -481,8 +481,9 @@ const AgileFS = () => {
             <Box
               sx={{ paddingTop: '20px' }}>
               <ExceptionsTable 
-                exception={exception} 
+                exceptions={exception} 
                 loading={loading} 
+                setIsModalClose={setIsModalClose}
               />
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
                 <Pagination

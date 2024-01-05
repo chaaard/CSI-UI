@@ -3,9 +3,10 @@ import { Box, Grid, TextField } from '@mui/material';
 import IAnalytics from '../../Pages/Common/Interface/IAnalytics';
 import IMatch from '../../Pages/Common/Interface/IMatch';
 import IAdjustmentAddProps from '../../Pages/Common/Interface/IAdjustmentAddProps';
+import IException from '../../Pages/Common/Interface/IException';
 
 interface IncorrectJOProps {
-  rowData: IMatch | null;
+  rowData: IException | null;
   onAdjustmentValuesChange: (field: keyof IAdjustmentAddProps, value: any) => void;
 }
 
@@ -96,7 +97,7 @@ const IncorrectJOFields: React.FC<IncorrectJOProps> = ({ rowData, onAdjustmentVa
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsPartner}
+              value={rowData?.CustomerId}
             />
           </Box>
         </Grid>
@@ -117,7 +118,7 @@ const IncorrectJOFields: React.FC<IncorrectJOProps> = ({ rowData, onAdjustmentVa
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsLocation}
+              value={rowData?.LocationName}
             />
           </Box>
         </Grid>
@@ -139,8 +140,8 @@ const IncorrectJOFields: React.FC<IncorrectJOProps> = ({ rowData, onAdjustmentVa
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsTransactionDate !== null
-                ? new Date(rowData?.AnalyticsTransactionDate ?? '').toLocaleDateString('en-CA', {
+              value={rowData?.TransactionDate !== null
+                ? new Date(rowData?.TransactionDate ?? '').toLocaleDateString('en-CA', {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -167,7 +168,7 @@ const IncorrectJOFields: React.FC<IncorrectJOProps> = ({ rowData, onAdjustmentVa
               maxRows={0}
               isDisabled={true}
               onChange={(field, value) => handleChange(field, value)}
-              value={rowData?.AnalyticsOrderNo}
+              value={rowData?.JoNumber}
             />
           </Box>
         </Grid>
