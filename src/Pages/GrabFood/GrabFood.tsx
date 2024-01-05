@@ -608,6 +608,7 @@ const GrabFood = () => {
                         <PortalTable 
                           portal={portal}
                           loading={loading}
+                          merchant='GrabFood'
                         />
                       </Box>
                     </Fade>
