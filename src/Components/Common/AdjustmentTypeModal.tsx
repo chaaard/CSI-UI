@@ -11,12 +11,14 @@ import axios, { AxiosRequestConfig } from 'axios';
 import IAdjustmentAddProps from '../../Pages/Common/Interface/IAdjustmentAddProps';
 import { sl, tr } from 'date-fns/locale';
 import IException from '../../Pages/Common/Interface/IException';
+import { Mode } from './ExceptionsTable';
 
 interface AdjustmentTypeModalProps {
   open: boolean;
   onClose: () => void;
   exception: IException;
   setIsModalClose: React.Dispatch<React.SetStateAction<boolean>>;
+  mode: Mode;
 }
 
 const StyledButton = styled(Button)(() => ({
@@ -47,7 +49,7 @@ const WhiteAlert = styled(Alert)(({ severity }) => ({
   backgroundColor: severity === 'success' ? '#E7FFDF' : '#FFC0C0',
 }));
 
-const AdjustmentTypeModal: React.FC<AdjustmentTypeModalProps> = ({ open, onClose, exception, setIsModalClose}) => {
+const AdjustmentTypeModal: React.FC<AdjustmentTypeModalProps> = ({ open, onClose, exception, setIsModalClose, mode }) => {
   const { REACT_APP_API_ENDPOINT } = process.env;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isModalOpenJO, setIsModalOpenJO] = useState<boolean>(false);
@@ -315,7 +317,7 @@ const AdjustmentTypeModal: React.FC<AdjustmentTypeModalProps> = ({ open, onClose
         open={isModalOpen}
         onSave={handleSubmit}
         children={  
-          <ForFilingDisputeFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange} />
+          <ForFilingDisputeFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange} mode={mode} />
         } 
       />
       <ModalComponent
@@ -325,7 +327,7 @@ const AdjustmentTypeModal: React.FC<AdjustmentTypeModalProps> = ({ open, onClose
         open={isModalOpenJO}
         onSave={handleSubmit}
         children={
-          <IncorrectJOFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange}/>
+          <IncorrectJOFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange} mode={mode} />
         } 
       />
       <ModalComponent
@@ -335,7 +337,7 @@ const AdjustmentTypeModal: React.FC<AdjustmentTypeModalProps> = ({ open, onClose
         open={isModalOpenPartner}
         onSave={handleSubmit}
         children={
-          <IncorrectPartnerFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange}/>
+          <IncorrectPartnerFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange} mode={mode} />
         } 
       />
       <ModalComponent
@@ -345,7 +347,7 @@ const AdjustmentTypeModal: React.FC<AdjustmentTypeModalProps> = ({ open, onClose
         open={isModalOpenCancelled}
         onSave={handleSubmit}
         children={
-          <ValidTransactionFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange}/>
+          <ValidTransactionFields rowData={exception} onAdjustmentValuesChange={handleAdjustmentChange} mode={mode} />
         } 
       />
     </Box>

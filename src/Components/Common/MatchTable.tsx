@@ -284,7 +284,7 @@ const MatchTable: React.FC<MatchProps> = ({ match, loading, setIsModalClose }) =
         flexDirection="column"
         alignItems="center"
         justifyContent="center"
-        height="100vh"
+        height="349px"
       >
         <CircularProgress size={80} />
         <Typography variant="h6" color="textSecondary" style={{ marginTop: '16px' }}>

@@ -10,10 +10,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import IReasons from '../../Pages/Common/Interface/IReasons';
 import axios, { AxiosRequestConfig } from 'axios';
 import IException from '../../Pages/Common/Interface/IException';
+import { Mode } from './ExceptionsTable';
 
 interface ValidTransactionProps {
   rowData: IException | null;
   onAdjustmentValuesChange: (field: keyof IAdjustmentAddProps, value: any) => void;
+  mode: Mode;
 }
 
 interface TextFieldCompProps {
@@ -59,7 +61,7 @@ const TextFieldComponent: React.FC<TextFieldCompProps> = ({tName, isMultiline, m
   );
 };
 
-const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAdjustmentValuesChange }) => {
+const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAdjustmentValuesChange, mode }) => {
   const { REACT_APP_API_ENDPOINT } = process.env;
   const [currentDate, setCurrentDate] = useState<Dayjs | undefined>();
   const [reasons, setReasons] = useState<IReasons[]>([]);
@@ -252,7 +254,8 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               <DesktopDatePicker
                 inputFormat="dddd, MMMM DD, YYYY"
                 disableMaskedInput
-                value={currentDate}
+                disabled={mode === Mode.VIEW ? true : false}
+                value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.AccountsPaymentDate : currentDate}
                 onChange={(value) => handleChange('AccountsPaymentDate', value)}
                 renderInput={(params: TextFieldProps) => (
                   <TextField
@@ -297,8 +300,9 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               tName='AccountsPaymentTransNo'
               isMultiline={false}
               maxRows={0}
-              isDisabled={false}
+              isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.AccountsPaymentTransNo : ""}
             />
           </Box>
         </Grid>
@@ -317,8 +321,9 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               tName='AccountsPaymentAmount'
               isMultiline={false}
               maxRows={0}
-              isDisabled={false}
+              isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.AccountsPaymentAmount : ""}
             />
           </Box>
         </Grid>
@@ -339,8 +344,9 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               size="small"
               type="text"
               required
+              disabled={mode === Mode.VIEW ? true : false}
               select
-              value={selected} // Default to an empty string if undefined
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.ReasonId : selected}// Default to an empty string if undefined
               onChange={(e) => handleChange('ReasonId', e.target.value)}
               InputProps={{
                 sx: {

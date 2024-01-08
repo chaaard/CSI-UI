@@ -15,6 +15,8 @@ import IAnalyticProps from '../Common/Interface/IAnalyticsProps';
 import IExceptionProps from '../Common/Interface/IExceptionProps';
 import dayjs, { Dayjs } from 'dayjs';
 import IRefreshAnalytics from '../Common/Interface/IRefreshAnalytics';
+import IAdjustmentAddProps from '../Common/Interface/IAdjustmentAddProps';
+import IInvoice from '../Common/Interface/IInvoice';
 
 // Define custom styles for white alerts
 const WhiteAlert = styled(Alert)(({ severity }) => ({
@@ -53,7 +55,12 @@ const MetroMart = () => {
   const [isModalClose, setIsModalClose] = useState<boolean>(false);
   const [successRefresh, setSuccessRefresh] = useState<boolean>(false);
   const [openRefresh, setOpenRefresh] = useState<boolean>(false);
+  const [openSubmit, setOpenSubmit] = useState<boolean>(false);
+  const [openGenInvoice, setOpenGenInvoice] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [adjustmentFields, setAdjustmentFields] = useState<IAdjustmentAddProps>({} as IAdjustmentAddProps);
+  const [isSave, setIsSave] = useState<boolean>(false);
+  const [isFetchException, setIsFetchException] = useState<boolean>(false);
 
   useEffect(() => {
     document.title = 'CSI | MetroMart';
@@ -83,7 +90,6 @@ const MetroMart = () => {
     }
   };
 
-
   // Handle closing the snackbar
   const handleSnackbarClose = (event: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
@@ -104,9 +110,105 @@ const MetroMart = () => {
     setOpenRefresh(false);
   }, []);
 
+  const handleOpenSubmit = () => {
+    setOpenSubmit(true);
+  };
+
+  const handleCloseSubmit = useCallback(() => {
+    setOpenSubmit(false);
+  }, []);
+
+  const handleOpenGenInvoice = () => {
+    setOpenGenInvoice(true);
+  };
+
+  const handleCloseGenInvoice = useCallback(() => {
+    setOpenGenInvoice(false);
+  }, []);
+
   const handleButtonClick = (buttonName : string) => {
     setActiveButton(buttonName);
     // Add any additional logic you need on button click
+  };
+
+  const formatDate = (value: Date) => {
+    let date = new Date(value);
+    const day = date.toLocaleString('default', { day: '2-digit' });
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.toLocaleString('default', { year: 'numeric' });
+    return day + '-' + month + '-' + year;
+  }
+
+  const handleGenInvoiceClick = () => {
+    try {
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const updatedParam: IRefreshAnalytics = {
+        dates: [formattedDate ? formattedDate : '', formattedDate ? formattedDate : ''],
+        memCode: ['9999011855', '90999011855', '900999011855'],
+        userId: '',
+        storeId: [club], 
+      }
+
+      const generateInvoice: AxiosRequestConfig = {
+        method: 'POST',
+        url: `${REACT_APP_API_ENDPOINT}/Analytics/GenerateInvoiceAnalytics`,
+        data: updatedParam,
+      };
+
+      axios(generateInvoice)
+      .then((result) => {
+          var analytics = result.data.InvoiceList as IInvoice[];
+          var isPending = result.data.IsPending;
+          if(!isPending)
+          {
+            const content = analytics.map((item) => {
+              const formattedTRXDate = formatDate(item.HDR_TRX_DATE);
+              const formattedGLDate = formatDate(item.HDR_GL_DATE);
+        
+              const formattedItem = {
+                ...item,
+                HDR_TRX_DATE: formattedTRXDate,
+                HDR_GL_DATE: formattedGLDate,
+              };
+        
+              // Join other fields
+              return Object.values(formattedItem).join('|') + '|';
+            })
+            .join('\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+        
+            const a = document.createElement('a');
+            a.href = url;
+            analytics.map(invoices => a.download = invoices.FILENAME)
+            document.body.appendChild(a);
+            a.click();
+        
+            // Cleanup
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('success');
+            setMessage('Invoice Generated Successfully');
+          }
+          else
+          {
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('warning');
+            setMessage('Please submit the analytics first and try again.');
+          }
+      })
+      .catch((error) => {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error generating invoice');
+      })
+    } catch (error) {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error generating invoice');
+    } 
   };
 
   const handleUploadClick = () => {
@@ -135,7 +237,7 @@ const MetroMart = () => {
         };
 
         axios(uploadProofList)
-        .then((response) => {
+        .then(async (response) => {
           if(response.data.Item2 === 'Proof list already uploaded!')
           {
             setSelectedFile([]);
@@ -184,6 +286,15 @@ const MetroMart = () => {
             setIsSnackbarOpen(true);
             setSnackbarSeverity('success');
             setMessage('MetroMart proof list uploaded successfully.');
+
+            const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+            const anaylticsParam: IAnalyticProps = {
+              dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+              memCode: ['9999011855', '90999011855', '900999011855'],
+              userId: '',
+              storeId: [club],
+            };
+            await fetchMetroMartMatch(anaylticsParam);
             setSuccess(true);
             setOpen(false);
           }
@@ -209,6 +320,9 @@ const MetroMart = () => {
       fileInput.value = '';
     }
   };
+
+  useEffect(() => {
+  }, [match]);
 
   const handleCloseModal = useCallback(() => {
     setOpen(false);
@@ -268,21 +382,19 @@ const MetroMart = () => {
   const fetchMetroMartMatch = useCallback(async(anaylticsParam: IAnalyticProps) => {
     try {
       setLoading(true);
-
       const getAnalyticsMatch: AxiosRequestConfig = {
         method: 'POST',
         url: `${REACT_APP_API_ENDPOINT}/Analytics/GetAnalyticsProofListVariance`,
         data: anaylticsParam,
       };
 
-      axios(getAnalyticsMatch)
-      .then(async (response) => {
-        setMatch(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      })
-      .finally(() => setLoading(false));
+      const response = await axios(getAnalyticsMatch);
+      const result = response.data;
+
+      if (result != null) {
+        setMatch(result);
+      }
+
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -300,15 +412,15 @@ const MetroMart = () => {
         data: exceptionParam,
       };
 
-      axios(getAnalytics)
-      .then(async (response) => {
-        setException(response.data.ExceptionList);
-        setPageCount(response.data.TotalPages);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      })
-      .finally(() => setLoading(false));
+      const response = await axios(getAnalytics);
+      const exception = response.data.ExceptionList;
+      const pages = response.data.TotalPages
+
+      if (exception != null) {
+        setException(exception);
+        setPageCount(pages);
+      }
+
     } catch (error) {
       console.error("Error fetching adjustment:", error);
     } finally {
@@ -316,102 +428,223 @@ const MetroMart = () => {
     }
   }, [REACT_APP_API_ENDPOINT]);
 
+
   useEffect(() => {
-    if(selectedDate !== null)
-    {
-      const formattedDate = selectedDate.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate],
-        memCode: ['9999011855', '90999011855', '900999011855'],
-        userId: '',
-        storeId: [club],
-      };
+    const fetchData = async () => {
+      try {
+        if(selectedDate !== null)
+        {
+          const formattedDate = selectedDate.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
+      
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
+      
+          await fetchMetroMart(anaylticsParam);
+          await fetchMetroMartPortal(anaylticsParam);
+          await fetchMetroMartMatch(anaylticsParam);
+          await fetchMetroMartException(exceptionParam);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
   
-      const exceptionParam: IExceptionProps = {
-        PageNumber: page,
-        PageSize: itemsPerPage,
-        SearchQuery: searchQuery,
-        ColumnToSort: columnToSort,
-        OrderBy: orderBy, 
-        dates: [formattedDate],
-        memCode: ['9999011855', '90999011855', '900999011855'],
-        userId: '',
-        storeId: [club],
-      };
-  
-      fetchMetroMart(anaylticsParam);
-      fetchMetroMartPortal(anaylticsParam);
-      fetchMetroMartMatch(anaylticsParam);
-      fetchMetroMartException(exceptionParam);
-    }
+    fetchData();
   }, [fetchMetroMart, fetchMetroMartPortal, fetchMetroMartMatch, fetchMetroMartException, page, itemsPerPage, searchQuery, columnToSort, orderBy, selectedDate, club]);
 
-  useEffect(() => {
-    if(success)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011855', '90999011855', '900999011855'],
-        userId: '',
-        storeId: [club],
-      };
-
-      fetchMetroMartPortal(anaylticsParam);
-      fetchMetroMartMatch(anaylticsParam);
-      setSuccess(false);
-    }
-  }, [fetchMetroMartPortal, fetchMetroMartMatch, currentDate, success,club]);
-
-  useEffect(() => {
-    if(isModalClose)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011855', '90999011855', '900999011855'],
-        userId: '',
-        storeId: [club],
-      };
+  const postException = useCallback(async(portalParams: IMatch[]) => {
+    try {
+      if(!isSave)
+      {
+        const adjustmentParamsArray = portalParams.map(filteredMatch => ({
+          Id: 0,
+          AnalyticsId: filteredMatch.AnalyticsId,
+          ProoflistId: filteredMatch.ProofListId,
+          ActionId: null,
+          StatusId: 5,
+          AdjustmentId: 0,
+          DeleteFlag: false,
+          AdjustmentAddDto: adjustmentFields
+        }));
   
-      const exceptionParam: IExceptionProps = {
-        PageNumber: page,
-        PageSize: itemsPerPage,
-        SearchQuery: searchQuery,
-        ColumnToSort: columnToSort,
-        OrderBy: orderBy, 
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011855', '90999011855', '900999011855'],
-        userId: '',
-        storeId: [club],
-      };
+        adjustmentParamsArray.forEach(paramAdjustment => {
+          const saveRequest: AxiosRequestConfig = {
+            method: 'POST',
+            url: `${REACT_APP_API_ENDPOINT}/Adjustment/CreateAnalyticsProofList`,
+            data: paramAdjustment,
+          };
+        
+          axios(saveRequest)
+            .catch((error) => {
+              console.error("Error saving data:", error);
+              setIsSnackbarOpen(true);
+              setSnackbarSeverity('error');
+              setMessage('Error occurred. Please try again.');
+            })
+            .finally(() => {
+              setIsSave(true); 
+            });
+        });
+      }
+    } catch (error) {
 
-      fetchMetroMartMatch(anaylticsParam);
-      fetchMetroMartException(exceptionParam);
-      setIsModalClose(false);
-    }
+    } 
+  }, [REACT_APP_API_ENDPOINT, adjustmentFields]);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (success) {
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
+  
+          await fetchMetroMartPortal(anaylticsParam);
+          // await fetchMetroMartMatch(anaylticsParam);
+  
+          const filteredMatches = match.filter(match => match.ProofListId === null);
+          
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
+
+          await postException(filteredMatches);
+          setIsFetchException(true);
+          setSuccess(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+  
+    fetchData();
+  }, [fetchMetroMartPortal, fetchMetroMartMatch, selectedDate, success, club, match]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if(isModalClose)
+        {
+          console.log("ISMODALCLOSE", isModalClose)
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
+      
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
+
+          await fetchMetroMartMatch(anaylticsParam);
+          await fetchMetroMartException(exceptionParam);
+          setIsModalClose(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
   })
 
   useEffect(() => {
-    if(successRefresh)
-    {
-      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
-      const anaylticsParam: IAnalyticProps = {
-        dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
-        memCode: ['9999011855', '90999011855', '900999011855'],
-        userId: '',
-        storeId: [club],
-      };
+    const fetchData = async () => {
+      try {
+        if(isFetchException)
+        {
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const exceptionParam: IExceptionProps = {
+            PageNumber: page,
+            PageSize: itemsPerPage,
+            SearchQuery: searchQuery,
+            ColumnToSort: columnToSort,
+            OrderBy: orderBy, 
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
 
-      fetchMetroMartMatch(anaylticsParam);
-      fetchMetroMart(anaylticsParam);
-      setSuccessRefresh(false);
-    }
+          await fetchMetroMartException(exceptionParam);
+          setIsFetchException(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if(successRefresh)
+        {
+          const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+          const anaylticsParam: IAnalyticProps = {
+            dates: [formattedDate?.toString() ? formattedDate?.toString() : ''],
+            memCode: ['9999011855', '90999011855', '900999011855'],
+            userId: '',
+            storeId: [club],
+          };
+    
+          await fetchMetroMartMatch(anaylticsParam);
+          await fetchMetroMart(anaylticsParam);
+          setSuccessRefresh(false);
+        }
+      } catch (error) {
+        // Handle error here
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
   }, [fetchMetroMart, fetchMetroMartMatch, selectedDate, successRefresh]);
 
   const handleRefreshClick = () => {
     try {
-      setRefreshing(false); 
+      setRefreshing(true);
       setOpenRefresh(false);
       const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
       const updatedParam: IRefreshAnalytics = {
@@ -453,7 +686,7 @@ const MetroMart = () => {
         setMessage('Error refreshing analytics');
         setSelectedFile([]);
         console.error("Error refreshing analytics:", error);
-        setRefreshing(false); 
+        setRefreshing(false);
         setOpenRefresh(false);
     } 
   };
@@ -473,6 +706,50 @@ const MetroMart = () => {
     ///
   };
 
+  const handleSubmitClick = () => {
+    try {
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const updatedParam: IRefreshAnalytics = {
+        dates: [formattedDate ? formattedDate : '', formattedDate ? formattedDate : ''],
+        memCode: ['9999011855', '90999011855', '900999011855'],
+        userId: '',
+        storeId: [club], 
+      }
+
+      const submitAnalytics: AxiosRequestConfig = {
+        method: 'POST',
+        url: `${REACT_APP_API_ENDPOINT}/Analytics/SubmitAnalytics`,
+        data: updatedParam,
+      };
+
+      axios(submitAnalytics)
+      .then((result) => {
+          var isNotPending = result.data;
+          if(!isNotPending)
+          {
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('success');
+            setMessage('Analytics Successfully Submitted');
+          }
+          else
+          {
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('warning');
+            setMessage('Please resolve the pending exceptions first and try again.');
+          }
+      })
+      .catch((error) => {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error submitting analytics');
+      })
+    } catch (error) {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error submitting analytics');
+    } 
+  };
+
   return (
     <Box
       sx={{
@@ -483,7 +760,7 @@ const MetroMart = () => {
     >
       <Grid container spacing={1} alignItems="flex-start" direction={'row'}>
         <Grid item>
-          <HeaderButtons handleChangeSearch={handleChangeSearch} handleOpenModal={handleOpenModal} handleOpenRefresh={handleOpenRefresh} customerName='MetroMart' handleChangeDate={handleChangeDate} selectedDate={selectedDate}/>  
+          <HeaderButtons handleOpenSubmit={handleOpenSubmit} handleChangeSearch={handleChangeSearch} handleOpenModal={handleOpenModal} handleOpenRefresh={handleOpenRefresh} customerName='MetroMart' handleChangeDate={handleChangeDate} selectedDate={selectedDate} handleOpenGenInvoice={handleOpenGenInvoice} />  
         </Grid>
         <Grid item xs={12}
           sx={{
@@ -528,8 +805,8 @@ const MetroMart = () => {
                     </Typography>
                     <Box
                       sx={{
-                        border: '2px solid #42413F',
-                        backgroundColor: '#99CC67',
+                        border: '2px solid #00B14F',
+                        backgroundColor: '#00B14F',
                         height: '3px',
                         width: '40px',
                         borderRadius: '25px',
@@ -651,7 +928,7 @@ const MetroMart = () => {
                   page={page}
                   onChange={(event, value) => {
                     setPage(value);
-                    const formattedDate = currentDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+                    const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
                     const exceptionParam: IExceptionProps = {
                       PageNumber: value,
                       PageSize: itemsPerPage,
@@ -684,111 +961,159 @@ const MetroMart = () => {
             </WhiteAlert>
           </Snackbar>
         </Grid>
-      <ModalComponent
-        title='Upload Prooflist'
-        onClose={handleCloseModal}
-        buttonName='Upload'
-        open={open}
-        onSave={handleUploadClick}
-        children={
-          <Box sx={{ flexGrow: 1 }}>
-            <Grid container spacing={1}>
-              <Grid item xs={8}
-                sx={{
-                  fontFamily: 'Inter',
-                  fontWeight: '900',
-                  color: '#1C2C5A',
-                  fontSize: '20px'
-                }}>
-                Partner
-              </Grid>
-              <Grid item xs={11.5} sx={{marginLeft: '10px'}}>
-                <Box display={'flex'}>
-                  <TextField 
-                    size='small' 
-                    fullWidth 
-                    value={'MetroMart'}
-                    disabled
-                  >
-                  </TextField>
-                </Box>
-              </Grid>
-              <Grid item xs={8}
-                sx={{
-                  fontFamily: 'Inter',
-                  fontWeight: '900',
-                  color: '#1C2C5A',
-                  fontSize: '20px'
-                }}>
-                File *
-              </Grid>
-              <Grid item xs={11.5} sx={{marginLeft: '10px'}}>
-                <Box display={'flex'}>
-                  <TextField
-                    variant="outlined"
-                    fullWidth
-                    disabled
-                    value={selectedFile?.length > 0 ? selectedFile?.map(file => file.name).join(', ') : 'Selected Files'}
-                    size='small'
-                    helperText='*CSV, XLSX File Only'
-                    required
+        <ModalComponent
+          title='Upload Prooflist'
+          onClose={handleCloseModal}
+          buttonName='Upload'
+          open={open}
+          onSave={handleUploadClick}
+          children={
+            <Box sx={{ flexGrow: 1 }}>
+              <Grid container spacing={1}>
+                <Grid item xs={8}
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: '900',
+                    color: '#1C2C5A',
+                    fontSize: '20px'
+                  }}>
+                  Partner
+                </Grid>
+                <Grid item xs={11.5} sx={{marginLeft: '10px'}}>
+                  <Box display={'flex'}>
+                    <TextField 
+                      size='small' 
+                      fullWidth 
+                      value={'MetroMart'}
+                      disabled
+                    >
+                    </TextField>
+                  </Box>
+                </Grid>
+                <Grid item xs={8}
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: '900',
+                    color: '#1C2C5A',
+                    fontSize: '20px'
+                  }}>
+                  File *
+                </Grid>
+                <Grid item xs={11.5} sx={{marginLeft: '10px'}}>
+                  <Box display={'flex'}>
+                    <TextField
+                      variant="outlined"
+                      fullWidth
+                      disabled
+                      value={selectedFile?.length > 0 ? selectedFile?.map(file => file.name).join(', ') : 'Selected Files'}
+                      size='small'
+                      helperText='*CSV, XLSX File Only'
+                      required
+                    />
+                    <label htmlFor="file-input">
+                    <Button
+                      component="span"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: '#B6B6B6',
+                        color: '#FFFFFF',
+                        height: '39.5px',
+                        boxShadow: 'inset 1px 6px 8px -1px rgba(0,0,0,0.3), inset 1px 0px 8px -1px rgba(0,0,0,0.3)',
+                        marginLeft: '-10px',
+                        borderRadius: 0,
+                        borderTopRightRadius: '8px',
+                        borderBottomRightRadius: '8px',
+                      }}
+                    >
+                      Browse
+                    </Button>
+                  </label>
+                  <input
+                    id="file-input"
+                    type="file"
+                    multiple={true}
+                    accept=".csv, .xlsx"
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
                   />
-                  <label htmlFor="file-input">
-                  <Button
-                    component="span"
-                    variant="contained"
-                    sx={{
-                      backgroundColor: '#B6B6B6',
-                      color: '#FFFFFF',
-                      height: '39.5px',
-                      boxShadow: 'inset 1px 6px 8px -1px rgba(0,0,0,0.3), inset 1px 0px 8px -1px rgba(0,0,0,0.3)',
-                      marginLeft: '-10px',
-                      borderRadius: 0,
-                      borderTopRightRadius: '8px',
-                      borderBottomRightRadius: '8px',
-                    }}
-                  >
-                    Browse
-                  </Button>
-                </label>
-                <input
-                  id="file-input"
-                  type="file"
-                  multiple={true}
-                  accept=".csv, .xlsx"
-                  style={{ display: 'none' }}
-                  onChange={handleFileChange}
-                />
-                </Box>
+                  </Box>
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        } 
-      />
-      <ModalComponent
-        title='Refresh Analytics'
-        onClose={handleCloseRefresh}
-        buttonName='Refresh'
-        open={openRefresh}
-        onSave={handleRefreshClick}
-        children={
-          <Box sx={{ flexGrow: 1 }}>
-            <Grid container spacing={1}>
-              <Grid item xs={8}
-                sx={{
-                  fontFamily: 'Inter',
-                  fontWeight: '900',
-                  color: '#1C2C5A',
-                  fontSize: '20px'
-                }}>
-                <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
-                  Any modifications made will be deleted!
-                </Typography>
+            </Box>
+          } 
+        />
+        <ModalComponent
+          title='Refresh Analytics'
+          onClose={handleCloseRefresh}
+          buttonName='Refresh'
+          open={openRefresh}
+          onSave={handleRefreshClick}
+          children={
+            <Box sx={{ flexGrow: 1 }}>
+              <Grid container spacing={1}>
+                <Grid item xs={8}
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: '900',
+                    color: '#1C2C5A',
+                    fontSize: '20px',
+                  }}>
+                  <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
+                    Any modifications made will be deleted!
+                  </Typography>
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        } 
-      />
+            </Box>
+          } 
+        />
+        <ModalComponent
+          title='Submit Analytics'
+          onClose={handleCloseSubmit}
+          buttonName='Submit'
+          open={openSubmit}
+          onSave={handleSubmitClick}
+          children={
+            <Box sx={{ flexGrow: 1 }}>
+              <Grid container spacing={1}>
+                <Grid item xs={8}
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: '900',
+                    color: '#1C2C5A',
+                    fontSize: '20px',
+                  }}>
+                  <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
+                    Are you sure you want to submit?
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          } 
+        />
+        <ModalComponent
+          title='Generate Invoice'
+          onClose={handleCloseGenInvoice}
+          buttonName='Generate'
+          open={openGenInvoice}
+          onSave={handleGenInvoiceClick}
+          children={
+            <Box sx={{ flexGrow: 1 }}>
+              <Grid container spacing={1}>
+                <Grid item xs={8}
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: '900',
+                    color: '#1C2C5A',
+                    fontSize: '20px',
+                  }}>
+                  <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
+                    Are you sure you want to generate invoice?
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          } 
+        />
     </Box>
   )
 }

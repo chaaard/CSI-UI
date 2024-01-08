@@ -8,10 +8,12 @@ import IAdjustmentAddProps from '../../Pages/Common/Interface/IAdjustmentAddProp
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import IException from '../../Pages/Common/Interface/IException';
+import { Mode } from './ExceptionsTable';
 
 interface ForFilingDisputeProps {
   rowData: IException | null;
   onAdjustmentValuesChange: (field: keyof IAdjustmentAddProps, value: any) => void;
+  mode: Mode;
 }
 
 interface TextFieldCompProps {
@@ -57,7 +59,7 @@ const TextFieldComponent: React.FC<TextFieldCompProps> = ({tName, isMultiline, m
   );
 };
 
-const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAdjustmentValuesChange }) => {
+const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAdjustmentValuesChange, mode }) => {
   const [currentDate, setCurrentDate] = useState<Dayjs | undefined>();
 
    // Handle changes in form fields
@@ -219,8 +221,9 @@ const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAd
               tName='DisputeReferenceNumber'
               isMultiline={false}
               maxRows={0}
-              isDisabled={false}
+              isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DisputeReferenceNumber : ""}
             />
           </Box>
         </Grid>
@@ -240,8 +243,9 @@ const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAd
               tName='DisputeAmount'
               isMultiline={false}
               maxRows={0}
-              isDisabled={false}
+              isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DisputeAmount : ""}
             />
           </Box>
         </Grid>
@@ -260,7 +264,8 @@ const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAd
               <DesktopDatePicker
                 inputFormat="dddd, MMMM DD, YYYY"
                 disableMaskedInput
-                value={currentDate}
+                value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DateDisputeFiled : currentDate}
+                disabled={mode === Mode.VIEW ? true : false}
                 onChange={(value) => handleChange('DateDisputeFiled', value)}
                 renderInput={(params: TextFieldProps) => (
                   <TextField
@@ -304,8 +309,9 @@ const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAd
               tName='DescriptionOfDispute'
               isMultiline={true}
               maxRows={4}
-              isDisabled={false}
+              isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DescriptionOfDispute : ""}
             />
           </Box>
         </Grid>

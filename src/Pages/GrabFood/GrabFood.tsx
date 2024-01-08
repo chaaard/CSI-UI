@@ -15,8 +15,8 @@ import IAnalyticProps from '../Common/Interface/IAnalyticsProps';
 import IExceptionProps from '../Common/Interface/IExceptionProps';
 import dayjs, { Dayjs } from 'dayjs';
 import IRefreshAnalytics from '../Common/Interface/IRefreshAnalytics';
-import loadingGif from '../../Assets/loading.gif';
 import IAdjustmentAddProps from '../Common/Interface/IAdjustmentAddProps';
+import IInvoice from '../Common/Interface/IInvoice';
 
 // Define custom styles for white alerts
 const WhiteAlert = styled(Alert)(({ severity }) => ({
@@ -55,8 +55,9 @@ const GrabFood = () => {
   const [isModalClose, setIsModalClose] = useState<boolean>(false);
   const [successRefresh, setSuccessRefresh] = useState<boolean>(false);
   const [openRefresh, setOpenRefresh] = useState<boolean>(false);
+  const [openSubmit, setOpenSubmit] = useState<boolean>(false);
+  const [openGenInvoice, setOpenGenInvoice] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  // const [fileNameTxt, setFileNameTxt] = useState<string>('');
   const [adjustmentFields, setAdjustmentFields] = useState<IAdjustmentAddProps>({} as IAdjustmentAddProps);
   const [isSave, setIsSave] = useState<boolean>(false);
   const [isFetchException, setIsFetchException] = useState<boolean>(false);
@@ -70,22 +71,6 @@ const GrabFood = () => {
   {
     club = parseInt(getClub, 10);
   }
-
-  function createInvoice(trxNumber: string, trxDate: string, paymentType: string, branchCode: string, customerNumber: string, customerSite: string,
-    paymentTerm: string, businessLine: string, batchSourceName: string, glDate: string, sourceReference: string, lineDesc: string, quantity: string,
-    amount: string, vatCode: string, currency: string, invoiceApplied: string, fileName: string ) {
-
-    return { trxNumber, trxDate, paymentType, branchCode, customerNumber, customerSite, paymentTerm, businessLine, batchSourceName, glDate, sourceReference,
-      lineDesc, quantity, amount, vatCode, currency, invoiceApplied, fileName };
-  }
-
-  const invoice = [
-    createInvoice('4619752I', '15-Oct-2023', 'HS', 'KNA', '115692 P', 'KNA', '0', '1', 'POS', '15-Oct-2023', 'HS', 'GEI225101523-15', '1', '10340', '', 'PHP', '0', 'SN102323_113505.A01'),
-    createInvoice('4537943I', '12-Oct-2023', 'HS', 'KNA', '115692 P', 'KNA', '0', '1', 'POS', '12-Oct-2023', 'HS', 'GEI225101523-15', '1', '10340', '', 'PHP', '0', 'SN102323_113505.A01'),
-    createInvoice('4309934I', '13-Oct-2023', 'HS', 'KNA', '115692 P', 'KNA', '0', '1', 'POS', '13-Oct-2023', 'HS', 'GEI225101523-15', '1', '10340', '', 'PHP', '0', 'SN102323_113505.A01'),
-    createInvoice('4401400I', '11-Oct-2023', 'HS', 'KNA', '115692 P', 'KNA', '0', '1', 'POS', '11-Oct-2023', 'HS', 'GEI225101523-15', '1', '10340', '', 'PHP', '0', 'SN102323_113505.A01'),
-  ];
-
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -125,27 +110,105 @@ const GrabFood = () => {
     setOpenRefresh(false);
   }, []);
 
+  const handleOpenSubmit = () => {
+    setOpenSubmit(true);
+  };
+
+  const handleCloseSubmit = useCallback(() => {
+    setOpenSubmit(false);
+  }, []);
+
+  const handleOpenGenInvoice = () => {
+    setOpenGenInvoice(true);
+  };
+
+  const handleCloseGenInvoice = useCallback(() => {
+    setOpenGenInvoice(false);
+  }, []);
+
   const handleButtonClick = (buttonName : string) => {
     setActiveButton(buttonName);
     // Add any additional logic you need on button click
   };
 
-  const handleOpenInvoiceModal = () => {
-    const content = invoice.map(invoice =>
-      Object.values(invoice).join('|') + '|'
-    ).join('\n');
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
+  const formatDate = (value: Date) => {
+    let date = new Date(value);
+    const day = date.toLocaleString('default', { day: '2-digit' });
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.toLocaleString('default', { year: 'numeric' });
+    return day + '-' + month + '-' + year;
+  }
 
-    const a = document.createElement('a');
-    a.href = url;
-    invoice.map(invoices => a.download = invoices.fileName)
-    document.body.appendChild(a);
-    a.click();
+  const handleGenInvoiceClick = () => {
+    try {
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const updatedParam: IRefreshAnalytics = {
+        dates: [formattedDate ? formattedDate : '', formattedDate ? formattedDate : ''],
+        memCode: ['9999011929'],
+        userId: '',
+        storeId: [club], 
+      }
 
-    // Cleanup
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const generateInvoice: AxiosRequestConfig = {
+        method: 'POST',
+        url: `${REACT_APP_API_ENDPOINT}/Analytics/GenerateInvoiceAnalytics`,
+        data: updatedParam,
+      };
+
+      axios(generateInvoice)
+      .then((result) => {
+          var analytics = result.data.InvoiceList as IInvoice[];
+          var isPending = result.data.IsPending;
+          if(!isPending)
+          {
+            const content = analytics.map((item) => {
+              const formattedTRXDate = formatDate(item.HDR_TRX_DATE);
+              const formattedGLDate = formatDate(item.HDR_GL_DATE);
+        
+              const formattedItem = {
+                ...item,
+                HDR_TRX_DATE: formattedTRXDate,
+                HDR_GL_DATE: formattedGLDate,
+              };
+        
+              // Join other fields
+              return Object.values(formattedItem).join('|') + '|';
+            })
+            .join('\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+        
+            const a = document.createElement('a');
+            a.href = url;
+            analytics.map(invoices => a.download = invoices.FILENAME)
+            document.body.appendChild(a);
+            a.click();
+        
+            // Cleanup
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('success');
+            setMessage('Invoice Generated Successfully');
+          }
+          else
+          {
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('warning');
+            setMessage('Please submit the analytics first and try again.');
+          }
+      })
+      .catch((error) => {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error generating invoice');
+      })
+    } catch (error) {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error generating invoice');
+    } 
   };
 
   const handleUploadClick = () => {
@@ -643,6 +706,50 @@ const GrabFood = () => {
     ///
   };
 
+  const handleSubmitClick = () => {
+    try {
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const updatedParam: IRefreshAnalytics = {
+        dates: [formattedDate ? formattedDate : '', formattedDate ? formattedDate : ''],
+        memCode: ['9999011929'],
+        userId: '',
+        storeId: [club], 
+      }
+
+      const submitAnalytics: AxiosRequestConfig = {
+        method: 'POST',
+        url: `${REACT_APP_API_ENDPOINT}/Analytics/SubmitAnalytics`,
+        data: updatedParam,
+      };
+
+      axios(submitAnalytics)
+      .then((result) => {
+          var isNotPending = result.data;
+          if(!isNotPending)
+          {
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('success');
+            setMessage('Analytics Successfully Submitted');
+          }
+          else
+          {
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('warning');
+            setMessage('Please resolve the pending exceptions first and try again.');
+          }
+      })
+      .catch((error) => {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error submitting analytics');
+      })
+    } catch (error) {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error submitting analytics');
+    } 
+  };
+
   return (
     <Box
       sx={{
@@ -653,7 +760,7 @@ const GrabFood = () => {
     >
       <Grid container spacing={1} alignItems="flex-start" direction={'row'}>
         <Grid item>
-          <HeaderButtons  handleChangeSearch={handleChangeSearch} handleOpenModal={handleOpenModal} handleOpenRefresh={handleOpenRefresh} customerName='GrabFood' handleChangeDate={handleChangeDate} selectedDate={selectedDate} handleOpenInvoiceModal={handleOpenInvoiceModal}/>  
+          <HeaderButtons handleOpenSubmit={handleOpenSubmit} handleChangeSearch={handleChangeSearch} handleOpenModal={handleOpenModal} handleOpenRefresh={handleOpenRefresh} customerName='GrabFood' handleChangeDate={handleChangeDate} selectedDate={selectedDate} handleOpenGenInvoice={handleOpenGenInvoice} />  
         </Grid>
         <Grid item xs={12}
           sx={{
@@ -821,7 +928,7 @@ const GrabFood = () => {
                   page={page}
                   onChange={(event, value) => {
                     setPage(value);
-                    const formattedDate = currentDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+                    const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
                     const exceptionParam: IExceptionProps = {
                       PageNumber: value,
                       PageSize: itemsPerPage,
@@ -953,6 +1060,54 @@ const GrabFood = () => {
                   }}>
                   <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
                     Any modifications made will be deleted!
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          } 
+        />
+        <ModalComponent
+          title='Submit Analytics'
+          onClose={handleCloseSubmit}
+          buttonName='Submit'
+          open={openSubmit}
+          onSave={handleSubmitClick}
+          children={
+            <Box sx={{ flexGrow: 1 }}>
+              <Grid container spacing={1}>
+                <Grid item xs={8}
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: '900',
+                    color: '#1C2C5A',
+                    fontSize: '20px',
+                  }}>
+                  <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
+                    Are you sure you want to submit?
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          } 
+        />
+        <ModalComponent
+          title='Generate Invoice'
+          onClose={handleCloseGenInvoice}
+          buttonName='Generate'
+          open={openGenInvoice}
+          onSave={handleGenInvoiceClick}
+          children={
+            <Box sx={{ flexGrow: 1 }}>
+              <Grid container spacing={1}>
+                <Grid item xs={8}
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: '900',
+                    color: '#1C2C5A',
+                    fontSize: '20px',
+                  }}>
+                  <Typography sx={{ fontSize: '25px', textAlign: 'center', marginRight: '-170px' }}>
+                    Are you sure you want to generate invoice?
                   </Typography>
                 </Grid>
               </Grid>
