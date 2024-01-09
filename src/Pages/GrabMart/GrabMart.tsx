@@ -17,6 +17,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import IRefreshAnalytics from '../Common/Interface/IRefreshAnalytics';
 import IAdjustmentAddProps from '../Common/Interface/IAdjustmentAddProps';
 import IInvoice from '../Common/Interface/IInvoice';
+import * as XLSX from 'xlsx';
+import IExceptionReport from '../Common/Interface/IExceptionReport';
 
 // Define custom styles for white alerts
 const WhiteAlert = styled(Alert)(({ severity }) => ({
@@ -750,6 +752,65 @@ const GrabMart = () => {
     } 
   };
 
+  const handleExportExceptions = () => {
+    try {
+      const formattedDate = selectedDate?.format('YYYY-MM-DD HH:mm:ss.SSS');
+      const updatedParam: IRefreshAnalytics = {
+        dates: [formattedDate ? formattedDate : '', formattedDate ? formattedDate : ''],
+        memCode: ['9999011955'],
+        userId: '',
+        storeId: [club], 
+      }
+
+      const exceptionReport: AxiosRequestConfig = {
+        method: 'POST',
+        url: `${REACT_APP_API_ENDPOINT}/Adjustment/ExportExceptions`,
+        data: updatedParam,
+      };
+
+      axios(exceptionReport)
+      .then((result) => {
+          var exceptions = result.data as IExceptionReport[];
+          if(exceptions.length >= 1)
+          {
+            const worksheet = XLSX.utils.json_to_sheet(exceptions);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'exceptions_report');
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const fileName = `exported_data_${new Date().toISOString()}.xlsx`;
+        
+            // Create a download link and trigger a click event to start the download
+            const downloadLink = document.createElement('a');
+            downloadLink.href = window.URL.createObjectURL(dataBlob);
+            downloadLink.download = fileName;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('success');
+            setMessage('Exceptions report successfully extracted.');
+          }
+          else
+          {
+            setIsSnackbarOpen(true);
+            setSnackbarSeverity('warning');
+            setMessage('No exceptions found.');
+          }
+      })
+      .catch((error) => {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error extracting exceptions report');
+      })
+    } catch (error) {
+        setIsSnackbarOpen(true);
+        setSnackbarSeverity('error');
+        setMessage('Error extracting exceptions report');
+    } 
+  };
+
   return (
     <Box
       sx={{
@@ -760,7 +821,7 @@ const GrabMart = () => {
     >
       <Grid container spacing={1} alignItems="flex-start" direction={'row'}>
         <Grid item>
-          <HeaderButtons handleOpenSubmit={handleOpenSubmit} handleChangeSearch={handleChangeSearch} handleOpenModal={handleOpenModal} handleOpenRefresh={handleOpenRefresh} customerName='GrabMart' handleChangeDate={handleChangeDate} selectedDate={selectedDate} handleOpenGenInvoice={handleOpenGenInvoice} />  
+          <HeaderButtons handleOpenSubmit={handleOpenSubmit} handleChangeSearch={handleChangeSearch} handleOpenModal={handleOpenModal} handleOpenRefresh={handleOpenRefresh} customerName='GrabMart' handleChangeDate={handleChangeDate} selectedDate={selectedDate} handleOpenGenInvoice={handleOpenGenInvoice} handleExportExceptions={handleExportExceptions} />  
         </Grid>
         <Grid item xs={12}
           sx={{

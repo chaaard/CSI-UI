@@ -192,7 +192,7 @@ const IncorrectJOFields: React.FC<IncorrectJOProps> = ({ rowData, onAdjustmentVa
               maxRows={0}
               isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
-              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.JoNumber : ""}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.JoNumber : null}
             />
           </Box>
         </Grid>

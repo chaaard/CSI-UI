@@ -223,7 +223,7 @@ const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
-              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DisputeReferenceNumber : ""}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DisputeReferenceNumber : null}
             />
           </Box>
         </Grid>
@@ -245,7 +245,7 @@ const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
-              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DisputeAmount : ""}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DisputeAmount : null}
             />
           </Box>
         </Grid>
@@ -311,7 +311,7 @@ const ForFilingDisputeFields: React.FC<ForFilingDisputeProps> = ({ rowData, onAd
               maxRows={4}
               isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
-              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DescriptionOfDispute : ""}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.DescriptionOfDispute : null}
             />
           </Box>
         </Grid>

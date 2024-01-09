@@ -302,7 +302,7 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
-              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.AccountsPaymentTransNo : ""}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.AccountsPaymentTransNo : null}
             />
           </Box>
         </Grid>
@@ -323,7 +323,7 @@ const ValidTransactionFields: React.FC<ValidTransactionProps> = ({ rowData, onAd
               maxRows={0}
               isDisabled={mode === Mode.VIEW ? true : false}
               onChange={(field, value) => handleChange(field, value)}
-              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.AccountsPaymentAmount : ""}
+              value={mode === Mode.EDIT || mode === Mode.VIEW ? rowData?.AccountsPaymentAmount : null}
             />
           </Box>
         </Grid>
